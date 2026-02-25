@@ -1,0 +1,9 @@
+cd E:\commerce\luxe_backend
+
+python manage.py runserver
+
+
+
+in admin page of products section add category while adding new product and editing product.
+
+in users product page add search section to search product name-wise and also add a filter to search products category wise
