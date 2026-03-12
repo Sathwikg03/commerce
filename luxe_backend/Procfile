@@ -1,0 +1,2 @@
+web: gunicorn luxe_backend.wsgi:application
+release: python manage.py migrate
