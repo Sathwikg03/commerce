@@ -377,7 +377,7 @@ export default function Products() {
                     <h3 className="font-luxury text-2xl text-white tracking-wide">{group.name}</h3>
                   </div>
                   <div className="flex-1 h-px" style={{ background: "linear-gradient(to right, rgba(198,161,74,0.3), transparent)" }} />
-                  {group.slug && group.items.length > 3 && (
+                  {group.slug && (
                     <motion.button
                       onClick={() => handleViewMore(group.slug)}
                       whileHover={{ x: 3 }}
@@ -433,4 +433,5 @@ export default function Products() {
       )}
     </div>
   );
+
 }
