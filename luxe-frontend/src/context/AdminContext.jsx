@@ -14,7 +14,9 @@ export const AdminContext = createContext();
  * This means staff users never need to "double login".
  */
 export const ADMIN_API = axios.create({
-  baseURL: "http://127.0.0.1:8000/api/",
+  baseURL: import.meta.env.VITE_API_URL
+    ? `${import.meta.env.VITE_API_URL}/api/`
+    : "http://127.0.0.1:8000/api/",
 });
 
 ADMIN_API.interceptors.request.use((config) => {
@@ -72,4 +74,5 @@ export const AdminProvider = ({ children }) => {
       {children}
     </AdminContext.Provider>
   );
+
 };
