@@ -62,7 +62,7 @@ const SORT_OPTIONS = [
 ];
 
 // ── Reusable custom dropdown ──────────────────────────────────────────────────
-function CustomDropdown({ icon: IconComp, label, options, value, onChange, placeholder }) {
+function CustomDropdown({ icon: IconComp, label, options, value, onChange, placeholder, fullWidthMobile }) {
   const [open, setOpen] = useState(false);
   const ref             = useRef(null);
   const selected        = options.find(o => o.value === value);
@@ -74,17 +74,21 @@ function CustomDropdown({ icon: IconComp, label, options, value, onChange, place
   }, []);
 
   return (
-    <div ref={ref} className="relative">
+    <div ref={ref} className={`relative ${fullWidthMobile ? "w-full sm:w-auto" : ""}`}>
       <button
         onClick={() => setOpen(o => !o)}
         className={`flex items-center gap-2 text-sm px-4 py-2.5 rounded-xl border transition-all duration-200 whitespace-nowrap ${
+          fullWidthMobile ? "w-full sm:w-auto justify-between sm:justify-start" : ""
+        } ${
           open || value
             ? "border-gold/50 text-gold bg-gold/5"
             : "border-gray-700 text-gray-300 hover:border-gold/40 hover:text-gold bg-transparent"
         }`}
       >
-        <IconComp />
-        <span>{selected ? selected.label : placeholder}</span>
+        <span className="flex items-center gap-2">
+          <IconComp />
+          <span>{selected ? selected.label : placeholder}</span>
+        </span>
         <motion.span animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.2 }}>
           <ChevronDown />
         </motion.span>
@@ -97,7 +101,9 @@ function CustomDropdown({ icon: IconComp, label, options, value, onChange, place
             animate={{ opacity: 1, y: 0,  scale: 1    }}
             exit={{   opacity: 0, y: -8, scale: 0.97 }}
             transition={{ duration: 0.15 }}
-            className="absolute top-full right-0 mt-2 w-52 z-30 rounded-xl overflow-hidden"
+            className={`absolute top-full mt-2 z-30 rounded-xl overflow-hidden ${
+              fullWidthMobile ? "left-0 right-0 sm:left-auto sm:right-0 sm:w-52" : "right-0 w-52"
+            }`}
             style={{
               background: "rgba(18,18,18,0.97)",
               border: "1px solid rgba(212,175,55,0.2)",
@@ -135,31 +141,22 @@ function CustomDropdown({ icon: IconComp, label, options, value, onChange, place
 }
 
 // ── helpers ───────────────────────────────────────────────────────────────────
-// Recursively collect all pages from a paginated DRF endpoint
 async function fetchAllPages(params = {}) {
   let results = [];
   let url     = "products/";
   while (url) {
     const res  = await API.get(url, { params: url === "products/" ? params : undefined });
     const data = res.data;
-    if (Array.isArray(data)) {
-      // Not paginated
-      return data;
-    }
+    if (Array.isArray(data)) return data;
     results = results.concat(data.results || []);
-    // next is an absolute URL like http://…/api/products/?page=2
-    // strip to relative path so axios baseURL still works
     if (data.next) {
       try {
-        const u   = new URL(data.next);
-        url       = u.pathname.replace(/^\/api\//, "") + u.search;
-      } catch {
-        url = null;
-      }
+        const u = new URL(data.next);
+        url     = u.pathname.replace(/^\/api\//, "") + u.search;
+      } catch { url = null; }
     } else {
       url = null;
     }
-    // only pass params on first request; subsequent pages encode them in the URL
     params = {};
   }
   return results;
@@ -169,31 +166,26 @@ async function fetchAllPages(params = {}) {
 export default function Products() {
   const navigate = useNavigate();
 
-  // all products fetched without filters — used for grouped view
   const [allProducts,    setAllProducts]    = useState([]);
-  // filtered/sorted products — used for flat view
   const [products,       setProducts]       = useState([]);
   const [categories,     setCategories]     = useState([]);
   const [loading,        setLoading]        = useState(true);
   const [search,         setSearch]         = useState("");
   const [activeCategory, setActiveCategory] = useState("");
-  const [sortOrder,      setSortOrder]      = useState(""); // "" = grouped default
+  const [sortOrder,      setSortOrder]      = useState("");
 
-  // ── Fetch ALL products once for the grouped view ──────────────────────────
   useEffect(() => {
     fetchAllPages({ ordering: "-created_at" })
       .then(data => setAllProducts(data))
       .catch(() => setAllProducts([]));
   }, []);
 
-  // ── Fetch categories ──────────────────────────────────────────────────────
   useEffect(() => {
     API.get("categories/")
       .then(res => setCategories(res.data.results || res.data))
       .catch(() => {});
   }, []);
 
-  // ── Fetch filtered/sorted products for flat view ──────────────────────────
   const fetchFiltered = useCallback(async () => {
     setLoading(true);
     try {
@@ -201,7 +193,6 @@ export default function Products() {
       if (sortOrder)      params.ordering = sortOrder;
       if (search.trim())  params.search   = search.trim();
       if (activeCategory) params.category = activeCategory;
-      // fetch all pages so we don't miss products
       const data = await fetchAllPages(params);
       setProducts(data);
     } catch {
@@ -216,12 +207,9 @@ export default function Products() {
     return () => clearTimeout(timer);
   }, [fetchFiltered]);
 
-  // ── Grouped view — always uses allProducts sorted oldest→newest ───────────
   const categoryGroups = useMemo(() => {
     const groupMap      = {};
     const uncategorised = [];
-
-    // allProducts already fetched with ordering=created_at (oldest first)
     allProducts.forEach(p => {
       const catName = p.category?.name || null;
       const catSlug = p.category?.slug || null;
@@ -232,16 +220,13 @@ export default function Products() {
         groupMap[catName].items.push(p);
       }
     });
-
     const sortedKeys = Object.keys(groupMap).sort((a, b) => a.localeCompare(b));
     const groups = sortedKeys.map(name => ({
       name,
       slug: groupMap[name].slug,
-      items: groupMap[name].items, // already oldest first from API
+      items: groupMap[name].items,
     }));
-    if (uncategorised.length > 0) {
-      groups.push({ name: "Uncategorised", slug: null, items: uncategorised });
-    }
+    if (uncategorised.length > 0) groups.push({ name: "Uncategorised", slug: null, items: uncategorised });
     return groups;
   }, [allProducts]);
 
@@ -249,6 +234,7 @@ export default function Products() {
   const totalCount       = products.length;
   const clearFilters     = () => { setSearch(""); setActiveCategory(""); setSortOrder(""); };
   const hasActiveFilters = search.trim() || activeCategory || sortOrder !== "";
+  const showLoading      = isGroupedView ? allProducts.length === 0 : loading;
 
   const categoryOptions = [
     { label: "All Categories", value: "" },
@@ -262,9 +248,6 @@ export default function Products() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  // loading state: grouped view uses allProducts, flat view uses products fetch
-  const showLoading = isGroupedView ? allProducts.length === 0 : loading;
-
   return (
     <div className="min-h-screen px-4 md:px-16 py-12">
 
@@ -276,12 +259,13 @@ export default function Products() {
         </p>
       </motion.div>
 
-      {/* ── Search + Category + Sort row ── */}
+      {/* ── Search row ── */}
       <motion.div
         initial={{ opacity:0, y:16 }} animate={{ opacity:1, y:0 }} transition={{ delay:0.1 }}
-        className="max-w-4xl mx-auto mb-6 flex flex-wrap gap-3 items-center"
+        className="max-w-4xl mx-auto mb-3"
       >
-        <div className="relative flex-1 min-w-[180px]">
+        {/* Search — full width on all screens */}
+        <div className="relative w-full mb-3">
           <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500"><SearchIcon /></span>
           <input
             type="text" value={search} onChange={e => setSearch(e.target.value)}
@@ -301,25 +285,33 @@ export default function Products() {
           </AnimatePresence>
         </div>
 
-        {categories.length > 0 && (
-          <CustomDropdown
-            icon={TagIcon}
-            label="Category"
-            placeholder="All Categories"
-            options={categoryOptions}
-            value={activeCategory}
-            onChange={setActiveCategory}
-          />
-        )}
-
-        <CustomDropdown
-          icon={SortIcon}
-          label="Sort By"
-          placeholder="Filter"
-          options={SORT_OPTIONS}
-          value={sortOrder}
-          onChange={setSortOrder}
-        />
+        {/* Category + Sort — side by side, each 50% on mobile, auto on desktop */}
+        <div className="flex gap-3">
+          {categories.length > 0 && (
+            <div className="flex-1 sm:flex-none">
+              <CustomDropdown
+                icon={TagIcon}
+                label="Category"
+                placeholder="All Categories"
+                options={categoryOptions}
+                value={activeCategory}
+                onChange={setActiveCategory}
+                fullWidthMobile
+              />
+            </div>
+          )}
+          <div className="flex-1 sm:flex-none">
+            <CustomDropdown
+              icon={SortIcon}
+              label="Sort By"
+              placeholder="Filter"
+              options={SORT_OPTIONS}
+              value={sortOrder}
+              onChange={setSortOrder}
+              fullWidthMobile
+            />
+          </div>
+        </div>
       </motion.div>
 
       {/* ── Active filter summary ── */}
@@ -355,7 +347,6 @@ export default function Products() {
         </div>
 
       ) : isGroupedView ? (
-        /* ── Default: Category-grouped view, oldest 3 per category ── */
         categoryGroups.length === 0 ? (
           <motion.div initial={{ opacity:0 }} animate={{ opacity:1 }} className="text-center py-24 space-y-4">
             <p className="text-5xl">🛍</p>
@@ -372,9 +363,9 @@ export default function Products() {
               >
                 {/* Category heading */}
                 <div className="flex items-center gap-4 mb-7">
-                  <div className="flex items-center gap-2.5 flex-shrink-0">
-                    <span className="text-gold/60"><TagIcon /></span>
-                    <h3 className="font-luxury text-2xl text-white tracking-wide">{group.name}</h3>
+                  <div className="flex items-center gap-2.5 flex-shrink-0 min-w-0">
+                    <span className="text-gold/60 flex-shrink-0"><TagIcon /></span>
+                    <h3 className="font-luxury text-xl md:text-2xl text-white tracking-wide truncate">{group.name}</h3>
                   </div>
                   <div className="flex-1 h-px" style={{ background: "linear-gradient(to right, rgba(198,161,74,0.3), transparent)" }} />
                   {group.slug && (
@@ -418,7 +409,6 @@ export default function Products() {
         </motion.div>
 
       ) : (
-        /* ── Filtered / sorted: flat grid, all results ── */
         <motion.div layout className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
           <AnimatePresence mode="popLayout">
             {products.map((product, i) => (
@@ -433,5 +423,4 @@ export default function Products() {
       )}
     </div>
   );
-
 }
