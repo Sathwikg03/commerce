@@ -8,8 +8,8 @@ import { AuthContext } from "../context/AuthContext";
 
 // ── Icons ─────────────────────────────────────────────────────────────────────
 const HeartIcon = ({ filled }) => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill={filled ? "#C6A14A" : "none"}
-    stroke="#C6A14A" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+  <svg width="16" height="16" viewBox="0 0 24 24" fill={filled ? "#e05a7a" : "none"}
+    stroke="#e05a7a" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
     <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
   </svg>
 );
@@ -46,10 +46,10 @@ export default function Wishlist() {
   const { wishlist, wishlistLoading, removeFromWishlist, moveAllToCart, fetchWishlist } = useContext(WishlistContext);
   const { addToCart, cartLoading } = useContext(CartContext);
 
-  const [addingToCart,  setAddingToCart]  = useState(null);  // product_id being added
-  const [cartFeedback,  setCartFeedback]  = useState({});    // { [product_id]: "success"|"error" }
-  const [moveStatus,    setMoveStatus]    = useState(null);  // success message
-  const [moving,        setMoving]        = useState(false);
+  const [addingToCart, setAddingToCart] = useState(null);
+  const [cartFeedback, setCartFeedback] = useState({});
+  const [moveStatus,   setMoveStatus]   = useState(null);
+  const [moving,       setMoving]       = useState(false);
 
   if (!user) return (
     <div className="min-h-screen flex flex-col items-center justify-center gap-6 text-center px-6">
@@ -179,11 +179,16 @@ export default function Wishlist() {
                     </div>
                   )}
 
-                  {/* Remove button */}
+                  {/* Remove button — pink to match ProductCard */}
                   <button
                     onClick={() => removeFromWishlist(item.id)}
                     className="absolute top-3 right-3 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110 active:scale-95"
-                    style={{ background: "rgba(0,0,0,0.6)", backdropFilter: "blur(8px)", border: "1px solid rgba(255,255,255,0.1)", touchAction: "manipulation" }}>
+                    style={{
+                      background: "rgba(224,90,122,0.18)",
+                      backdropFilter: "blur(8px)",
+                      border: "1px solid rgba(224,90,122,0.5)",
+                      touchAction: "manipulation",
+                    }}>
                     <HeartIcon filled />
                   </button>
                 </div>
@@ -192,7 +197,7 @@ export default function Wishlist() {
                 <div className="p-4 flex flex-col flex-1 gap-3">
                   <div className="flex-1">
                     <h3
-                      className="text-white text-sm font-semibold leading-tight mb-1 cursor-pointer hover:text-gold transition-colors line-clamp-2"
+                      className="text-white text-sm font-semibold leading-tight mb-1 cursor-pointer hover:text-gold transition-colors line-clamp-2 uppercase tracking-wide"
                       onClick={() => navigate(`/products/${item.product_id}`)}>
                       {item.product_name}
                     </h3>
@@ -230,8 +235,10 @@ export default function Wishlist() {
 
                     <button
                       onClick={() => removeFromWishlist(item.id)}
-                      className="w-full mt-2 h-9 rounded-xl flex items-center justify-center gap-1.5 text-xs text-gray-600 hover:text-red-400 transition-colors hover:bg-red-500/5"
-                      style={{ border: "1px solid rgba(255,255,255,0.05)", touchAction: "manipulation" }}>
+                      className="w-full mt-2 h-9 rounded-xl flex items-center justify-center gap-1.5 text-xs transition-colors hover:bg-red-500/5"
+                      style={{ border: "1px solid rgba(224,90,122,0.2)", color: "rgba(224,90,122,0.6)", touchAction: "manipulation" }}
+                      onMouseEnter={e => e.currentTarget.style.color = "#e05a7a"}
+                      onMouseLeave={e => e.currentTarget.style.color = "rgba(224,90,122,0.6)"}>
                       <TrashIcon />
                       Remove
                     </button>
