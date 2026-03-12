@@ -1,5 +1,6 @@
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import ProductCard from "../components/ProductCard";
 import API from "../services/api";
 
@@ -35,6 +36,12 @@ const ChevronDown = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
     fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
     <polyline points="6 9 12 15 18 9"/>
+  </svg>
+);
+const ChevronRight = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+    fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="9 6 15 12 9 18"/>
   </svg>
 );
 const CheckIcon = () => (
@@ -98,12 +105,9 @@ function CustomDropdown({ icon: IconComp, label, options, value, onChange, place
               backdropFilter: "blur(16px)",
             }}
           >
-            {/* Header */}
             <div className="px-4 py-2.5 border-b border-white/5">
               <p className="text-gray-500 text-xs uppercase tracking-widest">{label}</p>
             </div>
-
-            {/* Options */}
             <div className="py-1.5 max-h-64 overflow-y-auto">
               {options.map(opt => {
                 const active = opt.value === value;
@@ -130,29 +134,76 @@ function CustomDropdown({ icon: IconComp, label, options, value, onChange, place
   );
 }
 
+// ── helpers ───────────────────────────────────────────────────────────────────
+// Recursively collect all pages from a paginated DRF endpoint
+async function fetchAllPages(params = {}) {
+  let results = [];
+  let url     = "products/";
+  while (url) {
+    const res  = await API.get(url, { params: url === "products/" ? params : undefined });
+    const data = res.data;
+    if (Array.isArray(data)) {
+      // Not paginated
+      return data;
+    }
+    results = results.concat(data.results || []);
+    // next is an absolute URL like http://…/api/products/?page=2
+    // strip to relative path so axios baseURL still works
+    if (data.next) {
+      try {
+        const u   = new URL(data.next);
+        url       = u.pathname.replace(/^\/api\//, "") + u.search;
+      } catch {
+        url = null;
+      }
+    } else {
+      url = null;
+    }
+    // only pass params on first request; subsequent pages encode them in the URL
+    params = {};
+  }
+  return results;
+}
+
 // ── Main Products Page ────────────────────────────────────────────────────────
 export default function Products() {
+  const navigate = useNavigate();
+
+  // all products fetched without filters — used for grouped view
+  const [allProducts,    setAllProducts]    = useState([]);
+  // filtered/sorted products — used for flat view
   const [products,       setProducts]       = useState([]);
   const [categories,     setCategories]     = useState([]);
   const [loading,        setLoading]        = useState(true);
   const [search,         setSearch]         = useState("");
-  const [activeCategory, setActiveCategory] = useState("");   // "" = All
-  const [sortOrder,      setSortOrder]      = useState("-created_at");
+  const [activeCategory, setActiveCategory] = useState("");
+  const [sortOrder,      setSortOrder]      = useState(""); // "" = grouped default
 
+  // ── Fetch ALL products once for the grouped view ──────────────────────────
+  useEffect(() => {
+    fetchAllPages({ ordering: "-created_at" })
+      .then(data => setAllProducts(data))
+      .catch(() => setAllProducts([]));
+  }, []);
+
+  // ── Fetch categories ──────────────────────────────────────────────────────
   useEffect(() => {
     API.get("categories/")
       .then(res => setCategories(res.data.results || res.data))
       .catch(() => {});
   }, []);
 
-  const fetchProducts = useCallback(async () => {
+  // ── Fetch filtered/sorted products for flat view ──────────────────────────
+  const fetchFiltered = useCallback(async () => {
     setLoading(true);
     try {
-      const params = { ordering: sortOrder };
+      const params = {};
+      if (sortOrder)      params.ordering = sortOrder;
       if (search.trim())  params.search   = search.trim();
       if (activeCategory) params.category = activeCategory;
-      const res = await API.get("products/", { params });
-      setProducts(res.data.results || res.data);
+      // fetch all pages so we don't miss products
+      const data = await fetchAllPages(params);
+      setProducts(data);
     } catch {
       setProducts([]);
     } finally {
@@ -161,18 +212,58 @@ export default function Products() {
   }, [search, activeCategory, sortOrder]);
 
   useEffect(() => {
-    const timer = setTimeout(fetchProducts, 350);
+    const timer = setTimeout(fetchFiltered, 350);
     return () => clearTimeout(timer);
-  }, [fetchProducts]);
+  }, [fetchFiltered]);
 
-  const clearFilters    = () => { setSearch(""); setActiveCategory(""); setSortOrder("-created_at"); };
-  const hasActiveFilters = search.trim() || activeCategory || sortOrder !== "-created_at";
+  // ── Grouped view — always uses allProducts sorted oldest→newest ───────────
+  const categoryGroups = useMemo(() => {
+    const groupMap      = {};
+    const uncategorised = [];
 
-  // Build category options for dropdown
+    // allProducts already fetched with ordering=created_at (oldest first)
+    allProducts.forEach(p => {
+      const catName = p.category?.name || null;
+      const catSlug = p.category?.slug || null;
+      if (!catName) {
+        uncategorised.push(p);
+      } else {
+        if (!groupMap[catName]) groupMap[catName] = { slug: catSlug, items: [] };
+        groupMap[catName].items.push(p);
+      }
+    });
+
+    const sortedKeys = Object.keys(groupMap).sort((a, b) => a.localeCompare(b));
+    const groups = sortedKeys.map(name => ({
+      name,
+      slug: groupMap[name].slug,
+      items: groupMap[name].items, // already oldest first from API
+    }));
+    if (uncategorised.length > 0) {
+      groups.push({ name: "Uncategorised", slug: null, items: uncategorised });
+    }
+    return groups;
+  }, [allProducts]);
+
+  const isGroupedView    = sortOrder === "" && !activeCategory && !search.trim();
+  const totalCount       = products.length;
+  const clearFilters     = () => { setSearch(""); setActiveCategory(""); setSortOrder(""); };
+  const hasActiveFilters = search.trim() || activeCategory || sortOrder !== "";
+
   const categoryOptions = [
     { label: "All Categories", value: "" },
     ...categories.map(c => ({ label: c.name, value: c.slug })),
   ];
+
+  const handleViewMore = (slug) => {
+    if (!slug) return;
+    setActiveCategory(slug);
+    setSortOrder("");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  // loading state: grouped view uses allProducts, flat view uses products fetch
+  const showLoading = isGroupedView ? allProducts.length === 0 : loading;
 
   return (
     <div className="min-h-screen px-4 md:px-16 py-12">
@@ -190,7 +281,6 @@ export default function Products() {
         initial={{ opacity:0, y:16 }} animate={{ opacity:1, y:0 }} transition={{ delay:0.1 }}
         className="max-w-4xl mx-auto mb-6 flex flex-wrap gap-3 items-center"
       >
-        {/* Search bar — grows to fill space */}
         <div className="relative flex-1 min-w-[180px]">
           <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500"><SearchIcon /></span>
           <input
@@ -211,7 +301,6 @@ export default function Products() {
           </AnimatePresence>
         </div>
 
-        {/* Category dropdown */}
         {categories.length > 0 && (
           <CustomDropdown
             icon={TagIcon}
@@ -223,11 +312,10 @@ export default function Products() {
           />
         )}
 
-        {/* Sort dropdown */}
         <CustomDropdown
           icon={SortIcon}
           label="Sort By"
-          placeholder="Newest First"
+          placeholder="Filter"
           options={SORT_OPTIONS}
           value={sortOrder}
           onChange={setSortOrder}
@@ -242,8 +330,8 @@ export default function Products() {
             className="max-w-4xl mx-auto mb-6 flex items-center gap-3 overflow-hidden"
           >
             <span className="text-gray-500 text-xs">
-              {!loading && `${products.length} result${products.length !== 1 ? "s" : ""}`}
-              {search        && <span className="text-gold"> · "{search}"</span>}
+              {!loading && `${totalCount} result${totalCount !== 1 ? "s" : ""}`}
+              {search         && <span className="text-gold"> · "{search}"</span>}
               {activeCategory && <span className="text-gold"> · {categories.find(c => c.slug === activeCategory)?.name}</span>}
             </span>
             <button
@@ -257,24 +345,80 @@ export default function Products() {
         )}
       </AnimatePresence>
 
-      {/* ── Products Grid ── */}
-      {loading ? (
+      {/* ── Products ── */}
+      {showLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
           {[...Array(6)].map((_, i) => (
             <div key={i} className="rounded-2xl h-[560px] animate-pulse"
               style={{ background: "rgba(255,255,255,0.04)" }} />
           ))}
         </div>
-      ) : products.length === 0 ? (
+
+      ) : isGroupedView ? (
+        /* ── Default: Category-grouped view, oldest 3 per category ── */
+        categoryGroups.length === 0 ? (
+          <motion.div initial={{ opacity:0 }} animate={{ opacity:1 }} className="text-center py-24 space-y-4">
+            <p className="text-5xl">🛍</p>
+            <h3 className="text-2xl font-luxury text-gold">No products yet</h3>
+          </motion.div>
+        ) : (
+          <div className="max-w-7xl mx-auto space-y-14">
+            {categoryGroups.map((group, gi) => (
+              <motion.section
+                key={group.name}
+                initial={{ opacity: 0, y: 24 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.45, delay: gi * 0.07 }}
+              >
+                {/* Category heading */}
+                <div className="flex items-center gap-4 mb-7">
+                  <div className="flex items-center gap-2.5 flex-shrink-0">
+                    <span className="text-gold/60"><TagIcon /></span>
+                    <h3 className="font-luxury text-2xl text-white tracking-wide">{group.name}</h3>
+                  </div>
+                  <div className="flex-1 h-px" style={{ background: "linear-gradient(to right, rgba(198,161,74,0.3), transparent)" }} />
+                  {group.slug && group.items.length > 3 && (
+                    <motion.button
+                      onClick={() => handleViewMore(group.slug)}
+                      whileHover={{ x: 3 }}
+                      transition={{ duration: 0.15 }}
+                      className="flex items-center gap-1.5 flex-shrink-0 text-xs font-medium transition-colors duration-200"
+                      style={{ color: "rgba(198,161,74,0.7)" }}
+                      onMouseEnter={e => e.currentTarget.style.color = "#C6A14A"}
+                      onMouseLeave={e => e.currentTarget.style.color = "rgba(198,161,74,0.7)"}
+                    >
+                      View More <ChevronRight />
+                    </motion.button>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                  <AnimatePresence mode="popLayout">
+                    {group.items.slice(0, 3).map((product, i) => (
+                      <motion.div key={product.id} layout
+                        initial={{ opacity:0, y:24 }} animate={{ opacity:1, y:0 }}
+                        exit={{ opacity:0, scale:0.95 }}
+                        transition={{ delay: i * 0.05, duration:0.35 }}>
+                        <ProductCard product={product} />
+                      </motion.div>
+                    ))}
+                  </AnimatePresence>
+                </div>
+              </motion.section>
+            ))}
+          </div>
+        )
+
+      ) : totalCount === 0 ? (
         <motion.div initial={{ opacity:0 }} animate={{ opacity:1 }} className="text-center py-24 space-y-4">
           <p className="text-5xl">🔍</p>
           <h3 className="text-2xl font-luxury text-gold">No products found</h3>
-          <p className="text-gray-400 text-sm">
-            {hasActiveFilters ? "Try adjusting your search or filters." : "No products are available right now."}
-          </p>
-          {hasActiveFilters && <button onClick={clearFilters} className="btn-luxury mt-2">Clear Filters</button>}
+          <p className="text-gray-400 text-sm">Try adjusting your search or filters.</p>
+          <button onClick={clearFilters} className="btn-luxury mt-2">Clear Filters</button>
         </motion.div>
+
       ) : (
+        /* ── Filtered / sorted: flat grid, all results ── */
         <motion.div layout className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
           <AnimatePresence mode="popLayout">
             {products.map((product, i) => (

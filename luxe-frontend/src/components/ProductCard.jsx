@@ -1,7 +1,10 @@
+// ProductCard.jsx
+
 import { motion, AnimatePresence } from "framer-motion";
 import { useContext, useState, useEffect, useRef } from "react";
 import { CartContext } from "../context/CartContext";
 import { AuthContext } from "../context/AuthContext";
+import { WishlistContext } from "../context/WishlistContext";
 import { useNavigate, Link } from "react-router-dom";
 
 const CheckIcon = () => (
@@ -34,10 +37,20 @@ const EyeIcon = () => (
   </svg>
 );
 
+// ── NEW: Heart icon for wishlist ──────────────────────────────────────────────
+const HeartIcon = ({ filled }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+    fill={filled ? "#e05a7a" : "none"} stroke="#e05a7a" strokeWidth="1.8"
+    strokeLinecap="round" strokeLinejoin="round">
+    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+  </svg>
+);
+
 export default function ProductCard({ product }) {
-  const { addToCart, cartLoading } = useContext(CartContext);
-  const { user }    = useContext(AuthContext);
-  const navigate    = useNavigate();
+  const { addToCart, cartLoading }         = useContext(CartContext);
+  const { user }                           = useContext(AuthContext);
+  const { isWishlisted, toggleWishlist }   = useContext(WishlistContext); // ← NEW
+  const navigate                           = useNavigate();
 
   const imageList = (() => {
     if (product.images && product.images.length > 0)
@@ -47,11 +60,12 @@ export default function ProductCard({ product }) {
     return [];
   })();
 
-  const [imgIndex, setImgIndex]       = useState(0);
-  const [quantity, setQuantity]       = useState(1);
-  const [feedback, setFeedback]       = useState(null);
+  const [imgIndex,    setImgIndex]    = useState(0);
+  const [quantity,    setQuantity]    = useState(1);
+  const [feedback,    setFeedback]    = useState(null);
   const [feedbackMsg, setFeedbackMsg] = useState("");
-  const [paused, setPaused]           = useState(false);
+  const [paused,      setPaused]      = useState(false);
+  const [heartAnim,   setHeartAnim]   = useState(false); // ← NEW
   const pauseTimer                    = useRef(null);
 
   useEffect(() => {
@@ -70,6 +84,7 @@ export default function ProductCard({ product }) {
 
   const maxQty     = product.stock ?? 0;
   const outOfStock = maxQty === 0 || !product.is_available;
+  const wishlisted = isWishlisted(product.id); // ← NEW
 
   const prevImg = (e) => {
     e.stopPropagation(); e.preventDefault();
@@ -97,6 +112,16 @@ export default function ProductCard({ product }) {
       setFeedbackMsg(result?.error || "Something went wrong.");
     }
     setTimeout(() => { setFeedback(null); setFeedbackMsg(""); }, 2800);
+  };
+
+  // ── NEW: wishlist toggle handler ──────────────────────────────────────────
+  const handleWishlist = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!user) { navigate("/login"); return; }
+    setHeartAnim(true);
+    await toggleWishlist(product.id);
+    setTimeout(() => setHeartAnim(false), 400);
   };
 
   return (
@@ -155,6 +180,7 @@ export default function ProductCard({ product }) {
           </div>
         )}
 
+        {/* Category badge — top left */}
         <div className="absolute top-2.5 left-2.5 z-10">
           {product.category?.name ? (
             <span className="flex items-center gap-1 bg-black/60 backdrop-blur-sm text-gold text-xs px-2.5 py-1 rounded-full border border-gold/30">
@@ -163,8 +189,25 @@ export default function ProductCard({ product }) {
           ) : <span className="h-6 block" />}
         </div>
 
+        {/* ── NEW: Wishlist heart — top right (replaces the "Only N left" badge position) ── */}
+        <motion.button
+          onClick={handleWishlist}
+          whileTap={{ scale: 0.8 }}
+          animate={heartAnim ? { scale: [1, 1.4, 1] } : {}}
+          transition={{ duration: 0.3 }}
+          className="absolute top-2.5 right-2.5 z-20 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200"
+          style={{
+            background: wishlisted ? "rgba(224,90,122,0.18)" : "rgba(0,0,0,0.55)",
+            backdropFilter: "blur(8px)",
+            border: wishlisted ? "1px solid rgba(224,90,122,0.5)" : "1px solid rgba(255,255,255,0.15)",
+            touchAction: "manipulation",
+          }}>
+          <HeartIcon filled={wishlisted} />
+        </motion.button>
+
+        {/* "Only N left" badge — moved below heart */}
         {!outOfStock && maxQty <= 5 && (
-          <div className="absolute top-2.5 right-2.5 z-10">
+          <div className="absolute top-12 right-2.5 z-10">
             <span className="bg-yellow-500/20 border border-yellow-500/40 text-yellow-400 text-xs px-2 py-0.5 rounded-full">
               Only {maxQty} left
             </span>
@@ -175,7 +218,7 @@ export default function ProductCard({ product }) {
       {/* ── Content area ── */}
       <div className="flex flex-col flex-1 p-5 overflow-hidden">
         <Link to={`/products/${product.id}`} className="hover:text-gold transition-colors">
-          <h3 className="text-base font-semibold text-white truncate flex-shrink-0">{product.name}</h3>
+        <h3 className="text-base font-semibold text-white truncate flex-shrink-0 uppercase tracking-wide">{product.name}</h3>
         </Link>
 
         <p className="text-gray-400 text-sm mt-1 flex-shrink-0 leading-snug"

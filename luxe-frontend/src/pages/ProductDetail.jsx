@@ -1,9 +1,12 @@
+// ProductDetail.jsx
+
 import { useEffect, useState, useContext, useRef } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import API from "../services/api";
 import { CartContext } from "../context/CartContext";
 import { AuthContext } from "../context/AuthContext";
+import { WishlistContext } from "../context/WishlistContext";
 
 // ── Icons ─────────────────────────────────────────────────────────────────────
 const ChevronIcon = ({ dir }) => (
@@ -41,6 +44,13 @@ const StarPoly = ({ filled, size = 14 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24"
     fill={filled ? "#C6A14A" : "none"} stroke="#C6A14A" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
     <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+  </svg>
+);
+const HeartIcon = ({ filled }) => (
+  <svg width="16" height="16" viewBox="0 0 24 24"
+    fill={filled ? "#e05a7a" : "none"} stroke="#e05a7a" strokeWidth="1.8"
+    strokeLinecap="round" strokeLinejoin="round">
+    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
   </svg>
 );
 
@@ -82,13 +92,15 @@ export default function ProductDetail() {
   const { id }     = useParams();
   const navigate   = useNavigate();
   const { user }   = useContext(AuthContext);
-  const { addToCart, cartLoading } = useContext(CartContext);
+  const { addToCart, cartLoading }       = useContext(CartContext);
+  const { isWishlisted, toggleWishlist } = useContext(WishlistContext);
 
   const [product,      setProduct]      = useState(null);
   const [loading,      setLoading]      = useState(true);
   const [imgIndex,     setImgIndex]     = useState(0);
   const [quantity,     setQuantity]     = useState(1);
   const [cartFeedback, setCartFeedback] = useState(null);
+  const [heartAnim,    setHeartAnim]    = useState(false);
 
   const [reviews,     setReviews]     = useState([]);
   const [reviewMeta,  setReviewMeta]  = useState({ count: 0, average: 0, distribution: {} });
@@ -161,6 +173,13 @@ export default function ProductDetail() {
     else { setCartFeedback("error"); setTimeout(() => setCartFeedback(null), 2500); }
   };
 
+  const handleWishlist = async () => {
+    if (!user) { navigate("/login"); return; }
+    setHeartAnim(true);
+    await toggleWishlist(product.id);
+    setTimeout(() => setHeartAnim(false), 400);
+  };
+
   const handleSubmitReview = async (e) => {
     e.preventDefault();
     setFormError("");
@@ -209,6 +228,7 @@ export default function ProductDetail() {
   const outOfStock = product.stock === 0 || !product.is_available;
   const maxQty     = product.stock ?? 0;
   const lowStock   = !outOfStock && maxQty <= 5;
+  const wishlisted = isWishlisted(product.id);
 
   return (
     <div className="min-h-screen" style={{ background: "linear-gradient(180deg, #0a0a0e 0%, #080808 100%)" }}>
@@ -250,11 +270,9 @@ export default function ProductDetail() {
                 )}
               </AnimatePresence>
 
-              {/* Bottom fade */}
               <div className="absolute inset-0 pointer-events-none"
                 style={{ background: "linear-gradient(to top,rgba(8,8,8,0.4) 0%,transparent 40%)" }} />
 
-              {/* Arrows — always visible on mobile, hover-only on desktop */}
               {images.length > 1 && (
                 <>
                   <button onClick={() => goImg("prev")}
@@ -267,7 +285,6 @@ export default function ProductDetail() {
                     style={{ background: "rgba(0,0,0,0.55)", backdropFilter: "blur(8px)", border: "1px solid rgba(255,255,255,0.1)", touchAction: "manipulation" }}>
                     <ChevronIcon dir="right" />
                   </button>
-                  {/* Progress dots */}
                   <div className="absolute bottom-3 sm:bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-1.5 z-10">
                     {images.map((_, i) => (
                       <button key={i} onClick={() => { setImgIndex(i); pauseScroll(); }}
@@ -289,7 +306,6 @@ export default function ProductDetail() {
               )}
             </div>
 
-            {/* Thumbnails — horizontally scrollable on mobile */}
             {images.length > 1 && (
               <div className="flex justify-center gap-2 sm:gap-3 mt-3 sm:mt-4 overflow-x-auto pb-1 scrollbar-none"
                 style={{ WebkitOverflowScrolling: "touch", scrollbarWidth: "none" }}>
@@ -310,7 +326,6 @@ export default function ProductDetail() {
             transition={{ duration: 0.55, delay: 0.1 }}
             className="lg:sticky lg:top-28 space-y-5 sm:space-y-6">
 
-            {/* Category */}
             {product.category?.name && (
               <span className="inline-flex items-center text-[10px] sm:text-[11px] font-semibold tracking-[0.15em] uppercase px-3 py-1 rounded-full"
                 style={{ color: "#C6A14A", background: "rgba(198,161,74,0.08)", border: "1px solid rgba(198,161,74,0.2)" }}>
@@ -318,12 +333,15 @@ export default function ProductDetail() {
               </span>
             )}
 
-            {/* Name + stars */}
+            {/* Name row */}
             <div>
-              <h1 className="font-luxury leading-[1.1] text-white mb-2 sm:mb-3"
-                style={{ fontSize: "clamp(1.6rem,5vw,3rem)" }}>
-                {product.name}
-              </h1>
+              <div className="flex items-start justify-between gap-3 mb-2 sm:mb-3">
+                <h1 className="font-luxury leading-[1.1] text-white"
+                  style={{ fontSize: "clamp(1.6rem,5vw,3rem)" }}>
+                  {product.name}
+                </h1>
+              </div>
+
               {reviewMeta.count > 0 && (
                 <div className="flex items-center gap-2 flex-wrap">
                   <Stars value={reviewMeta.average} size={14} />
@@ -347,12 +365,10 @@ export default function ProductDetail() {
               )}
             </div>
 
-            {/* Description */}
             <p className="text-gray-400 leading-relaxed text-sm sm:text-[0.925rem]">
               {product.description}
             </p>
 
-            {/* Stock indicator */}
             <div className="flex items-center gap-2.5">
               <span className="w-2 h-2 rounded-full flex-shrink-0"
                 style={{ background: outOfStock ? "#f87171" : lowStock ? "#facc15" : "#4ade80", boxShadow: `0 0 8px ${outOfStock ? "rgba(248,113,113,0.5)" : lowStock ? "rgba(250,204,21,0.5)" : "rgba(74,222,128,0.5)"}` }} />
@@ -361,10 +377,9 @@ export default function ProductDetail() {
               </span>
             </div>
 
-            {/* Actions */}
+            {/* ── In-stock actions ── */}
             {!outOfStock && (
               <div className="space-y-4 pt-1">
-                {/* Qty selector */}
                 <div className="flex items-center gap-3 sm:gap-4">
                   <span className="text-xs tracking-widest uppercase text-gray-600 font-medium w-8">Qty</span>
                   <div className="flex items-center rounded-2xl overflow-hidden"
@@ -387,10 +402,26 @@ export default function ProductDetail() {
                   {quantity >= maxQty && <span className="text-yellow-500/70 text-xs">Max</span>}
                 </div>
 
-                {/* CTA buttons */}
-                <div className="grid grid-cols-2 gap-3">
+                {/* ── CTA: ♥ Wishlist | Add to Cart | Buy Now ── */}
+                <div className="grid gap-3" style={{ gridTemplateColumns: "auto 1fr 1fr" }}>
+                  {/* Square wishlist heart button */}
+                  <motion.button
+                    onClick={handleWishlist}
+                    whileTap={{ scale: 0.8 }}
+                    animate={heartAnim ? { scale: [1, 1.35, 1] } : {}}
+                    transition={{ duration: 0.3 }}
+                    className="flex items-center justify-center rounded-2xl transition-all duration-200 active:scale-[0.98]"
+                    style={{
+                      width: "52px", height: "52px",
+                      background: wishlisted ? "rgba(224,90,122,0.12)" : "rgba(255,255,255,0.03)",
+                      border: wishlisted ? "1px solid rgba(224,90,122,0.4)" : "1px solid rgba(255,255,255,0.1)",
+                      touchAction: "manipulation",
+                    }}
+                    aria-label={wishlisted ? "Remove from wishlist" : "Add to wishlist"}>
+                    <HeartIcon filled={wishlisted} />
+                  </motion.button>
                   <button onClick={handleAddToCart} disabled={cartLoading}
-                    className="flex items-center justify-center gap-2 rounded-2xl text-sm font-medium transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-white/5 active:scale-[0.98] active:bg-white/5"
+                    className="flex items-center justify-center gap-2 rounded-2xl text-sm font-medium transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-white/5 active:scale-[0.98]"
                     style={{ height: "52px", border: "1px solid rgba(198,161,74,0.45)", color: "#C6A14A", background: "rgba(198,161,74,0.04)", touchAction: "manipulation" }}>
                     <CartIcon />
                     <span className="hidden xs:inline sm:inline">{cartLoading ? "Adding…" : "Add to Cart"}</span>
@@ -406,6 +437,26 @@ export default function ProductDetail() {
               </div>
             )}
 
+            {/* ── Out-of-stock: show wishlist-only CTA ── */}
+            {outOfStock && (
+              <motion.button
+                onClick={handleWishlist}
+                whileTap={{ scale: 0.95 }}
+                animate={heartAnim ? { scale: [1, 1.2, 1] } : {}}
+                transition={{ duration: 0.3 }}
+                className="flex items-center justify-center gap-2 w-full rounded-2xl text-sm font-medium transition-all duration-200 active:scale-[0.98]"
+                style={{
+                  height: "52px",
+                  background: wishlisted ? "rgba(224,90,122,0.08)" : "rgba(255,255,255,0.03)",
+                  border: wishlisted ? "1px solid rgba(224,90,122,0.4)" : "1px solid rgba(255,255,255,0.1)",
+                  color: wishlisted ? "#e05a7a" : "#9ca3af",
+                  touchAction: "manipulation",
+                }}>
+                <HeartIcon filled={wishlisted} />
+                {wishlisted ? "Saved to Wishlist" : "Save to Wishlist"}
+              </motion.button>
+            )}
+
             {/* Cart feedback */}
             <AnimatePresence>
               {cartFeedback && (
@@ -417,6 +468,7 @@ export default function ProductDetail() {
                 </motion.div>
               )}
             </AnimatePresence>
+
           </motion.div>
         </div>
       </div>
@@ -434,12 +486,9 @@ export default function ProductDetail() {
             </h2>
           </motion.div>
 
-          {/* On mobile: sidebar stacks on top, list below. On desktop: side-by-side. */}
           <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-8 xl:gap-16">
 
-            {/* Sidebar */}
             <div className="space-y-5">
-              {/* Rating overview */}
               {reviewMeta.count > 0 && (
                 <motion.div initial={{ opacity: 0, y: 12 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
                   className="rounded-2xl p-5 sm:p-6"
@@ -473,7 +522,6 @@ export default function ProductDetail() {
                 </motion.div>
               )}
 
-              {/* Review form */}
               {user ? (
                 userReview ? (
                   <div className="rounded-2xl p-4 sm:p-5"
@@ -542,7 +590,6 @@ export default function ProductDetail() {
               )}
             </div>
 
-            {/* Review list */}
             <div>
               {reviewsLoad ? (
                 <div className="space-y-4">
@@ -584,7 +631,6 @@ export default function ProductDetail() {
                           {(review.full_name || review.username)?.[0]?.toUpperCase()}
                         </div>
                         <div className="flex-1 min-w-0">
-                          {/* Name + badge + delete */}
                           <div className="flex items-center justify-between gap-2">
                             <p className="text-white text-sm font-medium truncate">{review.full_name || review.username}</p>
                             <div className="flex items-center gap-2 flex-shrink-0">
@@ -603,7 +649,6 @@ export default function ProductDetail() {
                               )}
                             </div>
                           </div>
-                          {/* Stars + date */}
                           <div className="flex items-center gap-2 mt-1">
                             <Stars value={review.rating} size={12} />
                             <span className="text-gray-700 text-xs">·</span>

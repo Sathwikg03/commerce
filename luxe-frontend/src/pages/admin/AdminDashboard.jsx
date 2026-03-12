@@ -244,10 +244,26 @@ const BanModal = ({ user, onConfirm, onCancel, loading }) => {
 };
 
 const ImageUrlsInput = ({ urls, onChange }) => {
-  const add    = ()       => onChange([...urls, ""]);
-  const remove = (i)      => onChange(urls.filter((_, idx) => idx !== i));
+  const [commonUrl, setCommonUrl] = useState(urls[urls.length - 1] || "https://i.postimg.cc/V6y1Hcym/Gemini-Generated-Image-t1abwdt1abwdt1ab.png");
+
+  const productUrls = urls.slice(0, -1);
+
+  const syncCommon = (newCommon) => {
+    setCommonUrl(newCommon);
+    onChange([...productUrls, newCommon]);
+  };
+
+  const add    = ()       => onChange([...productUrls, "", commonUrl]);
+  const remove = (i)      => onChange([...urls.filter((_, idx) => idx !== i && idx !== urls.length - 1), commonUrl]);
   const update = (i, v)   => onChange(urls.map((u, idx) => idx === i ? v : u));
-  const move   = (i, dir) => { const n = [...urls]; [n[i], n[i+dir]] = [n[i+dir], n[i]]; onChange(n); };
+  const move   = (i, dir) => {
+    const editable = [...productUrls];
+    [editable[i], editable[i + dir]] = [editable[i + dir], editable[i]];
+    onChange([...editable, commonUrl]);
+  };
+
+  const displayUrls = productUrls;
+
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
@@ -257,29 +273,49 @@ const ImageUrlsInput = ({ urls, onChange }) => {
           <PlusIcon /> Add Image URL
         </button>
       </div>
-      {urls.length === 0 && (
+
+      {/* Common/shared URL pinned at top */}
+      <div className="border border-gold/20 bg-gold/5 rounded-xl p-3 space-y-1.5">
+        <p className="text-xs text-gold font-medium">Common Image URL <span className="text-gray-500 font-normal">(shared across all products)</span></p>
+        <div className="flex gap-2 items-center">
+          <div className="w-10 h-10 rounded-lg overflow-hidden bg-gray-800 flex-shrink-0 border border-gray-700">
+            {commonUrl
+              ? <img src={commonUrl} alt="" className="w-full h-full object-cover" onError={e => { e.target.style.display = "none"; }} />
+              : <div className="w-full h-full flex items-center justify-center text-gray-600"><ImgIcon /></div>}
+          </div>
+          <input type="url" value={commonUrl} onChange={e => syncCommon(e.target.value)}
+            placeholder="Shared image URL (always last)"
+            className="flex-1 bg-transparent border border-gold/30 focus:border-gold p-2.5 rounded-lg focus:outline-none transition text-white text-sm" />
+        </div>
+      </div>
+
+      {displayUrls.length === 0 && (
         <div className="border border-dashed border-gray-700 rounded-lg p-4 text-center">
           <div className="flex justify-center mb-2 text-gray-600"><ImgIcon /></div>
-          <p className="text-gray-600 text-xs">No images yet. Click "Add Image URL" to add product images.</p>
+          <p className="text-gray-600 text-xs">No additional images yet. Click "Add Image URL" to add more.</p>
         </div>
       )}
-      {urls.map((url, i) => (
+
+      {displayUrls.map((url, i) => (
         <div key={i} className="flex gap-2 items-center">
           <div className="w-10 h-10 rounded-lg overflow-hidden bg-gray-800 flex-shrink-0 border border-gray-700">
             {url
-              ? <img src={url} alt="" className="w-full h-full object-cover" onError={e => { e.target.style.display="none"; }} />
+              ? <img src={url} alt="" className="w-full h-full object-cover" onError={e => { e.target.style.display = "none"; }} />
               : <div className="w-full h-full flex items-center justify-center text-gray-600"><ImgIcon /></div>}
           </div>
-          <input type="url" value={url} onChange={e => update(i, e.target.value)} placeholder={`Image URL ${i+1}`}
+          <input type="url" value={url} onChange={e => update(i, e.target.value)} placeholder={`Image URL ${i + 1}`}
             className="flex-1 min-w-0 bg-transparent border border-gray-600 p-2.5 rounded-lg focus:outline-none focus:border-gold transition text-white text-sm" />
           <div className="flex flex-col gap-0.5">
             <button type="button" onClick={() => move(i, -1)} disabled={i === 0} className="text-gray-500 hover:text-gold transition disabled:opacity-20 text-xs p-0.5">▲</button>
-            <button type="button" onClick={() => move(i,  1)} disabled={i === urls.length-1} className="text-gray-500 hover:text-gold transition disabled:opacity-20 text-xs p-0.5">▼</button>
+            <button type="button" onClick={() => move(i,  1)} disabled={i === displayUrls.length - 1} className="text-gray-500 hover:text-gold transition disabled:opacity-20 text-xs p-0.5">▼</button>
           </div>
           <button type="button" onClick={() => remove(i)} className="text-gray-500 hover:text-red-400 transition flex-shrink-0"><TrashIcon /></button>
         </div>
       ))}
-      {urls.length > 0 && <p className="text-gray-600 text-xs">First image is the main thumbnail. Use ▲▼ to reorder.</p>}
+
+      {displayUrls.length > 0 && (
+        <p className="text-gray-600 text-xs">First image is the main thumbnail. Common URL is always appended last.</p>
+      )}
     </div>
   );
 };
