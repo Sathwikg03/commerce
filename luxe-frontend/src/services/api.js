@@ -1,7 +1,9 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: "http://127.0.0.1:8000/api/",
+  baseURL: import.meta.env.VITE_API_URL
+    ? `${import.meta.env.VITE_API_URL}/api/`
+    : "http://127.0.0.1:8000/api/",
 });
 
 const PUBLIC_ENDPOINTS = ["login/", "signup/", "token/refresh/"];
@@ -91,5 +93,6 @@ API.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
 
 export default API;
