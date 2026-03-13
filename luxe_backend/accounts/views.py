@@ -62,26 +62,34 @@ def send_otp_email(user, otp, subject, purpose_line):
 # ── Auth ─────────────────────────────────────────────────────────────────────
 
 class SignupView(APIView):
-    """
-    POST /api/signup/
-    Creates an unverified user and emails an OTP.
-    The account is inactive until email is verified.
-    """
     permission_classes = [AllowAny]
 
     def post(self, request):
         serializer = RegisterSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        email = serializer.validated_data.get('email', '').strip().lower()
+        email    = serializer.validated_data.get('email', '').strip().lower()
+        username = serializer.validated_data.get('username', '').strip()
 
-        # Block duplicate emails (username uniqueness is already handled by AbstractUser)
-        if email and User.objects.filter(email__iexact=email).exists():
-            return Response({'detail': 'An account with this email already exists.'}, status=400)
+        # If an unverified account exists with this email or username, delete it
+        # so the user can re-register cleanly
+        User.objects.filter(
+            is_email_verified=False,
+            is_active=False
+        ).filter(
+            Q(email__iexact=email) | Q(username__iexact=username)
+        ).delete()
+
+        # Block duplicate emails on active/verified accounts
+        if User.objects.filter(email__iexact=email).exists():
+            return Response(
+                {'detail': 'An account with this email already exists.'},
+                status=400
+            )
 
         # Create user as inactive until verified
         user = serializer.save()
-        user.is_active        = False
+        user.is_active         = False
         user.is_email_verified = False
 
         otp = generate_otp()
@@ -96,10 +104,12 @@ class SignupView(APIView):
         )
 
         if not sent:
-            # Email failed — print OTP to terminal so dev can still test
             print(f'\n[DEV] Signup OTP for {user.email}: {otp}\n')
 
-        return Response({'detail': 'Verification code sent to your email.', 'email': user.email}, status=201)
+        return Response(
+            {'detail': 'Verification code sent to your email.', 'email': user.email},
+            status=201
+        )
 
 
 class VerifySignupOtpView(APIView):
