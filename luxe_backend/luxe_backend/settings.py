@@ -121,7 +121,6 @@ SIMPLE_JWT = {
 CORS_ALLOWED_ORIGINS = [
     "https://luxe-shopee.vercel.app",
 ]
-CORS_ALLOW_ALL_ORIGINS = True
 
 CSRF_TRUSTED_ORIGINS = [
     "https://luxe-shopee.vercel.app",
