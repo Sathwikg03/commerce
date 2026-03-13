@@ -123,6 +123,7 @@ CORS_ALLOWED_ORIGINS = [
 
 CSRF_TRUSTED_ORIGINS = [
     "https://luxe-shopee.vercel.app",
+    "https://commerce-production-3c2d.up.railway.app",
 ]
 
 # ── Brevo HTTP API (replaces SMTP — Railway blocks all SMTP ports) ─────────────
