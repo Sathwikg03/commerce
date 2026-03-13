@@ -595,20 +595,543 @@ export default function AdminDashboard() {
 }
 
 // ═══ OVERVIEW ════════════════════════════════════════════════════════════════
-function OverviewTab() {
-  const [stats, setStats] = useState(null);
-  useEffect(() => { ADMIN_API.get("admin/stats/").then(r => setStats(r.data)).catch(() => {}); }, []);
+// ═══════════════════════════════════════════════════════════════════════════
+//  OverviewTab — drop-in replacement for the existing OverviewTab in
+//  AdminDashboard.jsx.
+//
+//  Dependencies (already available in most Vite/CRA setups):
+//    npm install recharts
+//
+//  API endpoints consumed:
+//    GET admin/stats/           → { total_users, total_products, total_orders, total_revenue }
+//    GET admin/orders/          → [ { id, status, total, created_at, ... } ]
+//    GET admin/products/        → [ { id, category: { name } | null, ... } ]
+//    GET admin/users/           → [ { id, date_joined, ... } ]
+//
+//  All chart data is derived client-side from those four endpoints so no
+//  backend changes are needed.
+// ═══════════════════════════════════════════════════════════════════════════
+
+import React, { useEffect, useState, useMemo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  AreaChart, Area,
+  BarChart, Bar,
+  PieChart, Pie, Cell,
+  LineChart, Line,
+  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
+} from "recharts";
+import { ADMIN_API } from "../../context/AdminContext";
+
+// ── palette ──────────────────────────────────────────────────────────────────
+const GOLD    = "#c8963e";
+const TEAL    = "#2aaa80";
+const BLUE    = "#5a8fc8";
+const PURPLE  = "#7f77dd";
+const CORAL   = "#d96038";
+const AMBER   = "#e0941a";
+const GRAY    = "#888780";
+
+const STATUS_COLORS = {
+  pending:   AMBER,
+  confirmed: BLUE,
+  shipped:   PURPLE,
+  delivered: TEAL,
+  cancelled: CORAL,
+};
+
+// ── helpers ───────────────────────────────────────────────────────────────────
+const fmt = (n) =>
+  "₹" + Number(n).toLocaleString("en-IN", { maximumFractionDigits: 0 });
+
+const parseDate = (s) => new Date(s);
+
+const startOf = {
+  week: () => {
+    const d = new Date();
+    d.setDate(d.getDate() - 6);
+    d.setHours(0, 0, 0, 0);
+    return d;
+  },
+  month: () => {
+    const d = new Date();
+    d.setDate(d.getDate() - 29);
+    d.setHours(0, 0, 0, 0);
+    return d;
+  },
+  year: () => {
+    const d = new Date();
+    d.setMonth(d.getMonth() - 11);
+    d.setDate(1);
+    d.setHours(0, 0, 0, 0);
+    return d;
+  },
+};
+
+// group orders into buckets depending on filter
+const bucketOrders = (orders, filter) => {
+  const cutoff = startOf[filter]();
+  const inRange = orders.filter((o) => parseDate(o.created_at) >= cutoff);
+
+  if (filter === "week") {
+    // last 7 days, label = Mon / Tue …
+    const days = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      days.push({
+        label: d.toLocaleDateString("en-IN", { weekday: "short" }),
+        date: d.toDateString(),
+        revenue: 0,
+        orders: 0,
+      });
+    }
+    inRange.forEach((o) => {
+      const key = parseDate(o.created_at).toDateString();
+      const slot = days.find((d) => d.date === key);
+      if (slot) { slot.revenue += Number(o.total); slot.orders += 1; }
+    });
+    return days.map(({ label, revenue, orders }) => ({ label, revenue: Math.round(revenue), orders }));
+  }
+
+  if (filter === "month") {
+    // last 30 days split into ~5-day buckets for readability (6 buckets)
+    const buckets = Array.from({ length: 6 }, (_, i) => {
+      const end = new Date();
+      end.setDate(end.getDate() - i * 5);
+      const start = new Date(end);
+      start.setDate(start.getDate() - 4);
+      return {
+        label: start.toLocaleDateString("en-IN", { day: "numeric", month: "short" }),
+        start,
+        end: new Date(end.setHours(23, 59, 59, 999)),
+        revenue: 0,
+        orders: 0,
+      };
+    }).reverse();
+    inRange.forEach((o) => {
+      const d = parseDate(o.created_at);
+      const slot = buckets.find((b) => d >= b.start && d <= b.end);
+      if (slot) { slot.revenue += Number(o.total); slot.orders += 1; }
+    });
+    return buckets.map(({ label, revenue, orders }) => ({ label, revenue: Math.round(revenue), orders }));
+  }
+
+  // year → last 12 months
+  const months = [];
+  for (let i = 11; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(1);
+    d.setMonth(d.getMonth() - i);
+    months.push({
+      label: d.toLocaleDateString("en-IN", { month: "short", year: "2-digit" }),
+      month: d.getMonth(),
+      year: d.getFullYear(),
+      revenue: 0,
+      orders: 0,
+    });
+  }
+  inRange.forEach((o) => {
+    const d = parseDate(o.created_at);
+    const slot = months.find(
+      (m) => m.month === d.getMonth() && m.year === d.getFullYear()
+    );
+    if (slot) { slot.revenue += Number(o.total); slot.orders += 1; }
+  });
+  return months.map(({ label, revenue, orders }) => ({ label, revenue: Math.round(revenue), orders }));
+};
+
+// orders by status counts
+const ordersByStatus = (orders) => {
+  const counts = {};
+  orders.forEach((o) => { counts[o.status] = (counts[o.status] || 0) + 1; });
+  return Object.entries(counts).map(([name, value]) => ({ name, value }));
+};
+
+// products by category
+const productsByCategory = (products) => {
+  const counts = {};
+  products.forEach((p) => {
+    const cat =
+      (typeof p.category === "object" ? p.category?.name : null) || "Uncategorised";
+    counts[cat] = (counts[cat] || 0) + 1;
+  });
+  return Object.entries(counts)
+    .sort((a, b) => b[1] - a[1])
+    .map(([name, count]) => ({ name, count }));
+};
+
+// user growth — cumulative per month for last 12 months
+const userGrowthData = (users) => {
+  const months = [];
+  for (let i = 11; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(1);
+    d.setMonth(d.getMonth() - i);
+    months.push({
+      label: d.toLocaleDateString("en-IN", { month: "short", year: "2-digit" }),
+      month: d.getMonth(),
+      year: d.getFullYear(),
+      new: 0,
+    });
+  }
+  users.forEach((u) => {
+    const d = parseDate(u.date_joined);
+    const slot = months.find(
+      (m) => m.month === d.getMonth() && m.year === d.getFullYear()
+    );
+    if (slot) slot.new += 1;
+  });
+  let cum = 0;
+  // also count users older than 12 months
+  const cutoff = new Date();
+  cutoff.setMonth(cutoff.getMonth() - 11);
+  cutoff.setDate(1);
+  cutoff.setHours(0, 0, 0, 0);
+  cum = users.filter((u) => parseDate(u.date_joined) < cutoff).length;
+  return months.map((m) => { cum += m.new; return { label: m.label, users: cum, new: m.new }; });
+};
+
+// ── sub-components ────────────────────────────────────────────────────────────
+
+const StatCard = ({ label, value, sub, color }) => (
+  <motion.div
+    initial={{ opacity: 0, y: 14 }}
+    animate={{ opacity: 1, y: 0 }}
+    className="glass rounded-2xl p-4 sm:p-6"
+  >
+    <p className="text-gray-400 text-sm mb-1">{label}</p>
+    <p className={`text-2xl sm:text-3xl font-luxury ${color || "text-gold"}`}>{value}</p>
+    {sub && <p className="text-gray-500 text-xs mt-1">{sub}</p>}
+  </motion.div>
+);
+
+const ChartCard = ({ title, children, controls }) => (
+  <motion.div
+    initial={{ opacity: 0, y: 14 }}
+    animate={{ opacity: 1, y: 0 }}
+    className="glass rounded-2xl p-4 sm:p-6"
+  >
+    <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+      <h3 className="text-base font-semibold text-white">{title}</h3>
+      {controls}
+    </div>
+    {children}
+  </motion.div>
+);
+
+const FilterPills = ({ value, onChange, options }) => (
+  <div className="flex gap-1">
+    {options.map((o) => (
+      <button
+        key={o.value}
+        onClick={() => onChange(o.value)}
+        className={`text-xs px-3 py-1 rounded-full border transition-all ${
+          value === o.value
+            ? "bg-gold/15 border-gold/40 text-gold"
+            : "border-gray-700 text-gray-500 hover:border-gray-500 hover:text-gray-300"
+        }`}
+      >
+        {o.label}
+      </button>
+    ))}
+  </div>
+);
+
+// custom recharts tooltip skin
+const CustomTooltip = ({ active, payload, label, formatter }) => {
+  if (!active || !payload?.length) return null;
   return (
-    <motion.div initial={{ opacity:0 }} animate={{ opacity:1 }} exit={{ opacity:0 }}>
-      <h2 className="text-2xl sm:text-3xl font-luxury text-gold mb-6 sm:mb-8">Dashboard Overview</h2>
-      {stats ? (
-        <div className="grid grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-6">
+    <div className="glass rounded-xl px-3 py-2 shadow-lg text-xs border border-gold/20">
+      <p className="text-gray-400 mb-1">{label}</p>
+      {payload.map((p, i) => (
+        <p key={i} style={{ color: p.color }} className="font-medium">
+          {p.name}: {formatter ? formatter(p.value) : p.value}
+        </p>
+      ))}
+    </div>
+  );
+};
+
+const RCOLORS = [GOLD, TEAL, BLUE, PURPLE, CORAL, AMBER, GRAY];
+
+// custom donut label
+const RADIAN = Math.PI / 180;
+const renderCustomLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, name }) => {
+  if (percent < 0.05) return null;
+  const r = innerRadius + (outerRadius - innerRadius) * 0.55;
+  const x = cx + r * Math.cos(-midAngle * RADIAN);
+  const y = cy + r * Math.sin(-midAngle * RADIAN);
+  return (
+    <text x={x} y={y} fill="#fff" textAnchor="middle" dominantBaseline="central" fontSize={11} fontWeight={500}>
+      {Math.round(percent * 100)}%
+    </text>
+  );
+};
+
+// ── main component ─────────────────────────────────────────────────────────────
+export default function OverviewTab() {
+  const [stats,    setStats]    = useState(null);
+  const [orders,   setOrders]   = useState([]);
+  const [products, setProducts] = useState([]);
+  const [users,    setUsers]    = useState([]);
+  const [loading,  setLoading]  = useState(true);
+  const [revFilter, setRevFilter] = useState("month");
+
+  useEffect(() => {
+    const fetchAll = async () => {
+      setLoading(true);
+      try {
+        const [sRes, oRes, pRes, uRes] = await Promise.all([
+          ADMIN_API.get("admin/stats/"),
+          ADMIN_API.get("admin/orders/"),
+          ADMIN_API.get("admin/products/"),
+          ADMIN_API.get("admin/users/"),
+        ]);
+        setStats(sRes.data);
+        setOrders(oRes.data.results || oRes.data);
+        setProducts(pRes.data.results || pRes.data);
+        setUsers(uRes.data.results || uRes.data);
+      } catch {}
+      finally { setLoading(false); }
+    };
+    fetchAll();
+  }, []);
+
+  // derived chart data
+  const revenueData  = useMemo(() => bucketOrders(orders, revFilter), [orders, revFilter]);
+  const statusData   = useMemo(() => ordersByStatus(orders), [orders]);
+  const categoryData = useMemo(() => productsByCategory(products), [products]);
+  const growthData   = useMemo(() => userGrowthData(users), [users]);
+
+  if (loading) return (
+    <div className="flex items-center justify-center py-24">
+      <p className="text-gray-400">Loading dashboard…</p>
+    </div>
+  );
+
+  const revFilterOpts = [
+    { label: "Week",  value: "week"  },
+    { label: "Month", value: "month" },
+    { label: "Year",  value: "year"  },
+  ];
+
+  return (
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-6">
+      <h2 className="text-2xl sm:text-3xl font-luxury text-gold">Dashboard Overview</h2>
+
+      {/* ── stat cards ─────────────────────────────────────────────────── */}
+      {stats && (
+        <div className="grid grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-5">
           <StatCard label="Total Users"    value={stats.total_users}    sub="registered accounts" />
           <StatCard label="Total Products" value={stats.total_products} sub="in catalogue" />
           <StatCard label="Total Orders"   value={stats.total_orders}   sub="all time" />
-          <StatCard label="Total Revenue"  value={`₹${Number(stats.total_revenue).toLocaleString("en-IN")}`} sub="confirmed + delivered" />
+          <StatCard
+            label="Total Revenue"
+            value={fmt(stats.total_revenue)}
+            sub="confirmed + delivered"
+            color="text-gold"
+          />
         </div>
-      ) : <p className="text-gray-400">Loading stats...</p>}
+      )}
+
+      {/* ── row 1: Revenue + Orders by status ──────────────────────────── */}
+      <div className="grid grid-cols-1 xl:grid-cols-5 gap-5">
+
+        {/* Revenue — spans 3 of 5 cols on xl */}
+        <div className="xl:col-span-3">
+          <ChartCard
+            title="Revenue"
+            controls={
+              <FilterPills
+                value={revFilter}
+                onChange={setRevFilter}
+                options={revFilterOpts}
+              />
+            }
+          >
+            <ResponsiveContainer width="100%" height={240}>
+              <AreaChart data={revenueData} margin={{ top: 4, right: 4, bottom: 0, left: 0 }}>
+                <defs>
+                  <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%"  stopColor={GOLD} stopOpacity={0.25} />
+                    <stop offset="95%" stopColor={GOLD} stopOpacity={0.02} />
+                  </linearGradient>
+                  <linearGradient id="ordGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%"  stopColor={BLUE} stopOpacity={0.2} />
+                    <stop offset="95%" stopColor={BLUE} stopOpacity={0.02} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                <XAxis dataKey="label" tick={{ fill: "#6b6b6b", fontSize: 11 }} axisLine={false} tickLine={false} />
+                <YAxis yAxisId="rev" tick={{ fill: "#6b6b6b", fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={v => "₹"+Intl.NumberFormat("en-IN",{notation:"compact"}).format(v)} width={56} />
+                <YAxis yAxisId="ord" orientation="right" tick={{ fill: "#6b6b6b", fontSize: 11 }} axisLine={false} tickLine={false} allowDecimals={false} width={28} />
+                <Tooltip
+                  content={<CustomTooltip formatter={(v, n) => n === "Revenue" ? fmt(v) : v} />}
+                />
+                <Area yAxisId="rev" type="monotone" dataKey="revenue" name="Revenue" stroke={GOLD} strokeWidth={2} fill="url(#revGrad)" dot={false} activeDot={{ r: 4, fill: GOLD }} />
+                <Area yAxisId="ord" type="monotone" dataKey="orders"  name="Orders"  stroke={BLUE} strokeWidth={1.5} fill="url(#ordGrad)" dot={false} activeDot={{ r: 4, fill: BLUE }} strokeDasharray="4 2" />
+              </AreaChart>
+            </ResponsiveContainer>
+            <div className="flex gap-4 mt-3 text-xs text-gray-500">
+              <span className="flex items-center gap-1.5"><span className="inline-block w-3 h-0.5 rounded" style={{ background: GOLD }}></span>Revenue</span>
+              <span className="flex items-center gap-1.5"><span className="inline-block w-3 h-0.5 rounded border-t border-dashed" style={{ borderColor: BLUE }}></span>Orders</span>
+            </div>
+          </ChartCard>
+        </div>
+
+        {/* Orders by status — spans 2 of 5 cols */}
+        <div className="xl:col-span-2">
+          <ChartCard title="Orders by status">
+            {statusData.length === 0 ? (
+              <p className="text-gray-600 text-sm py-8 text-center">No orders yet.</p>
+            ) : (
+              <>
+                <ResponsiveContainer width="100%" height={190}>
+                  <PieChart>
+                    <Pie
+                      data={statusData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius="45%"
+                      outerRadius="70%"
+                      paddingAngle={3}
+                      dataKey="value"
+                      labelLine={false}
+                      label={renderCustomLabel}
+                    >
+                      {statusData.map((entry, i) => (
+                        <Cell
+                          key={entry.name}
+                          fill={STATUS_COLORS[entry.name] || RCOLORS[i % RCOLORS.length]}
+                          stroke="transparent"
+                        />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      content={({ active, payload }) =>
+                        active && payload?.length ? (
+                          <div className="glass rounded-xl px-3 py-2 text-xs border border-gold/20">
+                            <p className="font-medium capitalize" style={{ color: STATUS_COLORS[payload[0].name] || GOLD }}>
+                              {payload[0].name}
+                            </p>
+                            <p className="text-gray-400">{payload[0].value} order{payload[0].value !== 1 ? "s" : ""}</p>
+                          </div>
+                        ) : null
+                      }
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+                {/* legend */}
+                <div className="flex flex-wrap gap-x-4 gap-y-1.5 mt-2">
+                  {statusData.map((s, i) => (
+                    <span key={s.name} className="flex items-center gap-1.5 text-xs text-gray-400">
+                      <span
+                        className="inline-block w-2 h-2 rounded-sm flex-shrink-0"
+                        style={{ background: STATUS_COLORS[s.name] || RCOLORS[i % RCOLORS.length] }}
+                      />
+                      <span className="capitalize">{s.name}</span>
+                      <span className="text-gray-600">({s.value})</span>
+                    </span>
+                  ))}
+                </div>
+              </>
+            )}
+          </ChartCard>
+        </div>
+      </div>
+
+      {/* ── row 2: Products by category + User growth ──────────────────── */}
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
+
+        {/* Products by category */}
+        <ChartCard title="Products by category">
+          {categoryData.length === 0 ? (
+            <p className="text-gray-600 text-sm py-8 text-center">No products yet.</p>
+          ) : (
+            <ResponsiveContainer width="100%" height={220}>
+              <BarChart
+                data={categoryData}
+                layout="vertical"
+                margin={{ top: 0, right: 24, bottom: 0, left: 0 }}
+                barCategoryGap="28%"
+              >
+                <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="rgba(255,255,255,0.05)" />
+                <XAxis type="number" tick={{ fill: "#6b6b6b", fontSize: 11 }} axisLine={false} tickLine={false} allowDecimals={false} />
+                <YAxis
+                  type="category"
+                  dataKey="name"
+                  width={100}
+                  tick={{ fill: "#9a9994", fontSize: 11 }}
+                  axisLine={false}
+                  tickLine={false}
+                  tickFormatter={v => v.length > 13 ? v.slice(0, 12) + "…" : v}
+                />
+                <Tooltip
+                  content={({ active, payload, label }) =>
+                    active && payload?.length ? (
+                      <div className="glass rounded-xl px-3 py-2 text-xs border border-gold/20">
+                        <p className="text-gray-400 mb-0.5">{label}</p>
+                        <p style={{ color: GOLD }} className="font-medium">{payload[0].value} product{payload[0].value !== 1 ? "s" : ""}</p>
+                      </div>
+                    ) : null
+                  }
+                />
+                <Bar dataKey="count" name="Products" radius={[0, 4, 4, 0]}>
+                  {categoryData.map((_, i) => (
+                    <Cell key={i} fill={RCOLORS[i % RCOLORS.length]} fillOpacity={0.8} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          )}
+        </ChartCard>
+
+        {/* User growth */}
+        <ChartCard title="User growth">
+          {growthData.every(d => d.users === 0) ? (
+            <p className="text-gray-600 text-sm py-8 text-center">No users yet.</p>
+          ) : (
+            <>
+              <ResponsiveContainer width="100%" height={200}>
+                <AreaChart data={growthData} margin={{ top: 4, right: 4, bottom: 0, left: 0 }}>
+                  <defs>
+                    <linearGradient id="userGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%"  stopColor={TEAL} stopOpacity={0.25} />
+                      <stop offset="95%" stopColor={TEAL} stopOpacity={0.02} />
+                    </linearGradient>
+                    <linearGradient id="newGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%"  stopColor={PURPLE} stopOpacity={0.2} />
+                      <stop offset="95%" stopColor={PURPLE} stopOpacity={0.02} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                  <XAxis dataKey="label" tick={{ fill: "#6b6b6b", fontSize: 11 }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fill: "#6b6b6b", fontSize: 11 }} axisLine={false} tickLine={false} allowDecimals={false} width={28} />
+                  <Tooltip
+                    content={({ active, payload, label }) =>
+                      active && payload?.length ? (
+                        <div className="glass rounded-xl px-3 py-2 text-xs border border-gold/20">
+                          <p className="text-gray-400 mb-1">{label}</p>
+                          {payload.map((p, i) => (
+                            <p key={i} style={{ color: p.color }} className="font-medium">{p.name}: {p.value}</p>
+                          ))}
+                        </div>
+                      ) : null
+                    }
+                  />
+                  <Area type="monotone" dataKey="users" name="Total users" stroke={TEAL}   strokeWidth={2}   fill="url(#userGrad)" dot={false} activeDot={{ r: 4, fill: TEAL }} />
+                  <Area type="monotone" dataKey="new"   name="New this month" stroke={PURPLE} strokeWidth={1.5} fill="url(#newGrad)"  dot={false} activeDot={{ r: 4, fill: PURPLE }} strokeDasharray="4 2" />
+                </AreaChart>
+              </ResponsiveContainer>
+              <div className="flex gap-4 mt-3 text-xs text-gray-500">
+                <span className="flex items-center gap-1.5"><span className="inline-block w-3 h-0.5 rounded" style={{ background: TEAL }}></span>Total</span>
+                <span className="flex items-center gap-1.5"><span className="inline-block w-3 h-0.5 rounded" style={{ background: PURPLE }}></span>New / month</span>
+              </div>
+            </>
+          )}
+        </ChartCard>
+      </div>
     </motion.div>
   );
 }
