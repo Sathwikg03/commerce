@@ -1,9 +1,11 @@
 import random
 import string
+import json
+import urllib.request
+import urllib.error
 from datetime import timedelta
 
 from django.utils import timezone
-from django.core.mail import send_mail
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
@@ -35,27 +37,51 @@ def generate_otp():
 
 
 def send_otp_email(user, otp, subject, purpose_line):
-    """Generic OTP email sender."""
-    try:
-        send_mail(
-            subject=subject,
-            message=(
-                f'Hi {user.full_name or user.username},\n\n'
-                f'{purpose_line}\n\n'
-                f'Your verification code is: {otp}\n\n'
-                f'This code expires in {OTP_EXPIRY_MINUTES} minutes.\n\n'
-                f'If you did not request this, please ignore this email.\n\n'
-                f'— The Luxe Team'
-            ),
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[user.email],
-            fail_silently=False,
-        )
+    """Send OTP via Brevo HTTP API (avoids Railway SMTP port blocks)."""
+    api_key = getattr(settings, 'BREVO_API_KEY', '')
+
+    if not api_key:
+        print(f'\n[DEV] OTP for {user.email}: {otp}\n')
         return True
+
+    payload = json.dumps({
+        "sender": {
+            "name":  "Luxe Store",
+            "email": "sathwikgangapuram18@gmail.com"
+        },
+        "to": [{"email": user.email}],
+        "subject": subject,
+        "textContent": (
+            f"Hi {user.full_name or user.username},\n\n"
+            f"{purpose_line}\n\n"
+            f"Your verification code is: {otp}\n\n"
+            f"This code expires in {OTP_EXPIRY_MINUTES} minutes.\n\n"
+            f"If you did not request this, please ignore this email.\n\n"
+            f"— The Luxe Team"
+        )
+    }).encode("utf-8")
+
+    req = urllib.request.Request(
+        "https://api.brevo.com/v3/smtp/email",
+        data=payload,
+        headers={
+            "accept":       "application/json",
+            "content-type": "application/json",
+            "api-key":      api_key,
+        },
+        method="POST"
+    )
+
+    try:
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            print(f'[EMAIL OK] Sent to {user.email}, status {resp.status}')
+            return True
+    except urllib.error.HTTPError as e:
+        body = e.read().decode()
+        print(f'[EMAIL ERROR] Brevo API {e.code}: {body}')
+        return False
     except Exception as e:
-        import traceback
-        traceback.print_exc()   # prints full error to Django terminal
-        print(f'[EMAIL ERROR] Failed to send to {user.email}: {e}')
+        print(f'[EMAIL ERROR] {e}')
         return False
 
 
@@ -71,8 +97,7 @@ class SignupView(APIView):
         email    = serializer.validated_data.get('email', '').strip().lower()
         username = serializer.validated_data.get('username', '').strip()
 
-        # If an unverified account exists with this email or username, delete it
-        # so the user can re-register cleanly
+        # Delete any stale unverified account with same email or username
         User.objects.filter(
             is_email_verified=False,
             is_active=False
@@ -87,7 +112,6 @@ class SignupView(APIView):
                 status=400
             )
 
-        # Create user as inactive until verified
         user = serializer.save()
         user.is_active         = False
         user.is_email_verified = False
@@ -113,11 +137,6 @@ class SignupView(APIView):
 
 
 class VerifySignupOtpView(APIView):
-    """
-    POST /api/verify-email/
-    Body: { "email": "...", "otp": "123456" }
-    Activates the account and returns tokens.
-    """
     permission_classes = [AllowAny]
 
     def post(self, request):
@@ -141,11 +160,10 @@ class VerifySignupOtpView(APIView):
         if not user.reset_otp_expiry or timezone.now() > user.reset_otp_expiry:
             return Response({'detail': 'This code has expired. Please sign up again.'}, status=400)
 
-        # Activate account
-        user.is_active        = True
+        user.is_active         = True
         user.is_email_verified = True
-        user.reset_otp        = ''
-        user.reset_otp_expiry = None
+        user.reset_otp         = ''
+        user.reset_otp_expiry  = None
         user.save(update_fields=['is_active', 'is_email_verified', 'reset_otp', 'reset_otp_expiry'])
 
         tokens = get_tokens_for_user(user)
@@ -153,11 +171,6 @@ class VerifySignupOtpView(APIView):
 
 
 class ResendSignupOtpView(APIView):
-    """
-    POST /api/resend-verification/
-    Body: { "email": "..." }
-    Resends OTP for unverified accounts.
-    """
     permission_classes = [AllowAny]
 
     def post(self, request):
@@ -191,10 +204,6 @@ class ResendSignupOtpView(APIView):
 
 
 class LoginView(APIView):
-    """
-    POST /api/login/
-    Authenticates via email + password.
-    """
     permission_classes = [AllowAny]
 
     def post(self, request):
@@ -212,7 +221,6 @@ class LoginView(APIView):
         if not user_obj.check_password(password):
             return Response({'detail': 'Invalid email or password.'}, status=401)
 
-        # Account not yet email-verified
         if not user_obj.is_email_verified:
             return Response({
                 'detail': 'Please verify your email before logging in.',
@@ -220,7 +228,6 @@ class LoginView(APIView):
                 'email': user_obj.email,
             }, status=403)
 
-        # Banned account
         if not user_obj.is_active:
             reason  = user_obj.ban_reason.strip()
             message = f'Your account has been banned. Reason: {reason}' if reason else 'Your account has been banned. Please contact support.'
@@ -231,10 +238,6 @@ class LoginView(APIView):
 
 
 class AdminLoginView(APIView):
-    """
-    POST /api/admin/login/
-    Staff-only login — also uses email + password.
-    """
     permission_classes = [AllowAny]
 
     def post(self, request):
@@ -263,7 +266,6 @@ class AdminLoginView(APIView):
 
 
 class TokenRefreshView(APIView):
-    """POST /api/token/refresh/"""
     permission_classes = [AllowAny]
 
     def post(self, request):
@@ -278,7 +280,6 @@ class TokenRefreshView(APIView):
 
 
 class ProfileView(generics.RetrieveUpdateAPIView):
-    """GET/PUT /api/profile/"""
     permission_classes = [IsAuthenticated]
     serializer_class   = UserSerializer
 
@@ -289,7 +290,6 @@ class ProfileView(generics.RetrieveUpdateAPIView):
 # ── Password Reset ─────────────────────────────────────────────────────────────
 
 class PasswordResetSendOtpView(APIView):
-    """POST /api/password-reset/send-otp/"""
     permission_classes = [AllowAny]
 
     def post(self, request):
@@ -317,14 +317,12 @@ class PasswordResetSendOtpView(APIView):
         )
 
         if not sent:
-            # Email failed — print OTP to terminal so dev can still test
             print(f'\n[DEV] Password reset OTP for {user.email}: {otp}\n')
 
         return Response({'detail': 'If this email is registered, you will receive a code shortly.'})
 
 
 class PasswordResetVerifyOtpView(APIView):
-    """POST /api/password-reset/verify-otp/"""
     permission_classes = [AllowAny]
 
     def post(self, request):
@@ -349,7 +347,6 @@ class PasswordResetVerifyOtpView(APIView):
 
 
 class PasswordResetConfirmView(APIView):
-    """POST /api/password-reset/reset/"""
     permission_classes = [AllowAny]
 
     def post(self, request):
