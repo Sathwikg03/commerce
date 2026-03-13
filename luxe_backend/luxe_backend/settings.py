@@ -118,9 +118,9 @@ SIMPLE_JWT = {
 
 # ── CORS ──────────────────────────────────────────────────────────────────────
 # After deploying, replace with your actual Vercel URL:
-# CORS_ALLOWED_ORIGINS = [
-#     "https://your-app.vercel.app",
-# ]
+CORS_ALLOWED_ORIGINS = [
+    "https://luxe-shopee.vercel.app",
+]
 CORS_ALLOW_ALL_ORIGINS = True
 
 # ── Email ─────────────────────────────────────────────────────────────────────
