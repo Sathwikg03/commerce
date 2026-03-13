@@ -120,3 +120,4 @@ EMAIL_USE_TLS       = True
 EMAIL_HOST_USER     = os.environ.get('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
 DEFAULT_FROM_EMAIL  = f'Luxe Store <{os.environ.get("EMAIL_HOST_USER", "")}>'
+EMAIL_TIMEOUT = 10
