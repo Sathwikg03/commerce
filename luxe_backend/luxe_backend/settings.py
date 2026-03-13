@@ -1,11 +1,10 @@
 import os
+import dj_database_url
 from pathlib import Path
 from datetime import timedelta
-import dj_database_url
 from decouple import config
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-
 
 SECRET_KEY = config('SECRET_KEY')
 DEBUG = config('DEBUG', default=False, cast=bool)
@@ -35,7 +34,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware', 
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -43,9 +42,6 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
-
-STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 ROOT_URLCONF = 'luxe_backend.urls'
 
@@ -67,6 +63,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'luxe_backend.wsgi.application'
 
+# ── Database ──────────────────────────────────────────────────────────────────
 DATABASES = {
     'default': dj_database_url.config(
         env='DATABASE_URL',
@@ -90,6 +87,9 @@ USE_I18N = True
 USE_TZ = True
 
 STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
@@ -117,6 +117,10 @@ SIMPLE_JWT = {
 }
 
 # ── CORS ──────────────────────────────────────────────────────────────────────
+# After deploying, replace with your actual Vercel URL:
+# CORS_ALLOWED_ORIGINS = [
+#     "https://your-app.vercel.app",
+# ]
 CORS_ALLOW_ALL_ORIGINS = True
 
 # ── Email ─────────────────────────────────────────────────────────────────────
@@ -124,7 +128,7 @@ EMAIL_BACKEND       = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST          = 'smtp.gmail.com'
 EMAIL_PORT          = 587
 EMAIL_USE_TLS       = True
-EMAIL_HOST_USER     = os.environ.get('EMAIL_HOST_USER', '')
-EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
-DEFAULT_FROM_EMAIL  = f'Luxe Store <{os.environ.get("EMAIL_HOST_USER", "")}>'
-EMAIL_TIMEOUT = 10
+EMAIL_HOST_USER     = config('EMAIL_HOST_USER', default='')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
+DEFAULT_FROM_EMAIL  = f'Luxe Store <{config("EMAIL_HOST_USER", default="")}>'
+EMAIL_TIMEOUT       = 10
