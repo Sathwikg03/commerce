@@ -3,4 +3,4 @@ builder = "nixpacks"
 buildCommand = "pip install -r requirements.txt && python manage.py collectstatic --noinput"
 
 [deploy]
-startCommand = "python manage.py migrate accounts 0004 --fake && python manage.py migrate && gunicorn luxe_backend.wsgi:application"
+startCommand = "python manage.py migrate && gunicorn luxe_backend.wsgi:application"
