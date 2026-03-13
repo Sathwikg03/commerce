@@ -21,10 +21,8 @@ const parseError = (err) => {
 };
 
 // ── Icons ─────────────────────────────────────────────────────────────────────
-// Base props shared by all icons
 const S = { fill:"none", stroke:"currentColor", strokeWidth:"1.8", strokeLinecap:"round", strokeLinejoin:"round" };
 
-// Generic Icon for one-off inline usage (path-only)
 const Icon = ({ d, size = 20 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" {...S}>
     {Array.isArray(d) ? d.map((p, i) => <path key={i} d={p} />) : <path d={d} />}
@@ -152,6 +150,12 @@ const CloseIcon = () => (
   </svg>
 );
 
+const FilterIcon = () => (
+  <svg width={16} height={16} viewBox="0 0 24 24" {...S}>
+    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+  </svg>
+);
+
 // ── Shared UI ─────────────────────────────────────────────────────────────────
 const Badge = ({ label, color }) => {
   const map = {
@@ -274,7 +278,6 @@ const ImageUrlsInput = ({ urls, onChange }) => {
         </button>
       </div>
 
-      {/* Common/shared URL pinned at top */}
       <div className="border border-gold/20 bg-gold/5 rounded-xl p-3 space-y-1.5">
         <p className="text-xs text-gold font-medium">Common Image URL <span className="text-gray-500 font-normal">(shared across all products)</span></p>
         <div className="flex gap-2 items-center">
@@ -329,7 +332,6 @@ const CategorySelector = ({ value, onChange, categoryOptions, setCategoryOptions
   const [err, setErr]                     = useState("");
   const dropdownRef                       = useRef(null);
 
-  // Close dropdown on outside click
   useEffect(() => {
     const handler = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
@@ -362,7 +364,6 @@ const CategorySelector = ({ value, onChange, categoryOptions, setCategoryOptions
   return (
     <div className="space-y-2">
       <div className="flex items-center gap-2">
-        {/* Custom dropdown trigger */}
         <div ref={dropdownRef} className="flex-1 relative">
           <button
             type="button"
@@ -474,7 +475,6 @@ export default function AdminDashboard() {
     if (!checking && !admin) navigate("/admin/login");
   }, [checking, admin, navigate]);
 
-  // Close sidebar on tab change (mobile)
   const handleTabChange = (key) => {
     setTab(key);
     setSidebarOpen(false);
@@ -502,7 +502,6 @@ export default function AdminDashboard() {
           <a href="/" className="text-2xl font-luxury text-gold">LUXE</a>
           <p className="text-xs text-gray-500 mt-0.5">Admin Console</p>
         </div>
-        {/* Close button only on mobile */}
         <button
           className="lg:hidden text-gray-400 hover:text-white transition"
           onClick={() => setSidebarOpen(false)}
@@ -549,13 +548,11 @@ export default function AdminDashboard() {
       <AnimatePresence>
         {sidebarOpen && (
           <>
-            {/* Backdrop */}
             <motion.div
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden"
               onClick={() => setSidebarOpen(false)}
             />
-            {/* Drawer */}
             <motion.aside
               initial={{ x: -280 }} animate={{ x: 0 }} exit={{ x: -280 }}
               transition={{ type: "spring", damping: 28, stiffness: 300 }}
@@ -802,6 +799,23 @@ function ProductsTab() {
   const [deleteTarget,    setDeleteTarget]    = useState(null);
   const [deleteLoading,   setDeleteLoading]   = useState(false);
 
+  // ── NEW: search & category filter state ──────────────────────────────────
+  const [search,          setSearch]          = useState("");
+  const [filterCategory,  setFilterCategory]  = useState("");
+  const [catDropdownOpen, setCatDropdownOpen] = useState(false);
+  const catDropdownRef                        = useRef(null);
+
+  // Close category filter dropdown on outside click
+  useEffect(() => {
+    const handler = (e) => {
+      if (catDropdownRef.current && !catDropdownRef.current.contains(e.target)) {
+        setCatDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
   useEffect(() => {
     const fetchAll = async () => {
       setLoading(true);
@@ -817,6 +831,29 @@ function ProductsTab() {
     };
     fetchAll();
   }, []);
+
+  // ── Client-side filtering ────────────────────────────────────────────────
+  const filteredProducts = products.filter(p => {
+    const q = search.trim().toLowerCase();
+    const matchesSearch = !q ||
+      p.name?.toLowerCase().includes(q) ||
+      p.description?.toLowerCase().includes(q);
+
+    const matchesCategory = !filterCategory ||
+      String(p.category?.id ?? p.category ?? "") === filterCategory;
+
+    return matchesSearch && matchesCategory;
+  });
+
+  const activeFilterCount = (search.trim() ? 1 : 0) + (filterCategory ? 1 : 0);
+
+  const clearFilters = () => { setSearch(""); setFilterCategory(""); };
+
+  const selectedCatLabel = filterCategory
+    ? categoryOptions.find(c => String(c.id) === filterCategory)?.name || "Category"
+    : "All Categories";
+
+  // ────────────────────────────────────────────────────────────────────────
 
   const openAdd  = () => { setEditing(null); setForm(emptyForm); setFormError(""); setShowModal(true); };
   const openEdit = (p) => {
@@ -883,54 +920,218 @@ function ProductsTab() {
     <motion.div initial={{ opacity:0 }} animate={{ opacity:1 }} exit={{ opacity:0 }}>
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl sm:text-3xl font-luxury text-gold">Products</h2>
-        <button onClick={openAdd} className="btn-luxury flex items-center gap-2 text-sm"><PlusIcon /> <span className="hidden sm:inline">Add Product</span><span className="sm:hidden">Add</span></button>
+        <button onClick={openAdd} className="btn-luxury flex items-center gap-2 text-sm">
+          <PlusIcon /> <span className="hidden sm:inline">Add Product</span><span className="sm:hidden">Add</span>
+        </button>
       </div>
-      {loading ? <p className="text-gray-400">Loading...</p> : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-5">
-          {products.map(p => (
-            <motion.div key={p.id} layout className="glass rounded-2xl overflow-hidden">
-              <div className="relative h-44 bg-gray-900">
-                {getThumb(p)
-                  ? <img src={getThumb(p)} alt={p.name} className="h-full w-full object-cover" />
-                  : <div className="h-full flex items-center justify-center text-gray-700"><ImgIcon /></div>}
-                <div className="absolute top-2 right-2 flex gap-1.5">
-                  <Badge label={p.is_available ? "Live" : "Hidden"} color={p.is_available ? "green" : "red"} />
-                  {p.stock === 0 && <Badge label="Out of Stock" color="red" />}
-                </div>
-                {p.images?.length > 1 && (
-                  <div className="absolute bottom-2 left-2">
-                    <span className="bg-black/60 text-white text-xs px-2 py-0.5 rounded-full">{p.images.length} photos</span>
-                  </div>
-                )}
-              </div>
-              <div className="p-4">
-                <div className="flex items-start justify-between gap-2 mb-0.5">
-                  <h3 className="font-semibold text-white truncate">{p.name}</h3>
-                  {getCatName(p) && (
-                    <span className="flex-shrink-0 text-xs bg-gold/10 border border-gold/20 text-yellow-500 px-2 py-0.5 rounded-full">
-                      {getCatName(p)}
-                    </span>
-                  )}
-                </div>
-                <p className="text-gray-400 text-xs mt-0.5 truncate">{p.description}</p>
-                <div className="flex items-center justify-between mt-3">
-                  <span className="text-gold font-semibold text-sm">₹ {Number(p.price).toLocaleString("en-IN")}</span>
-                  <span className={`text-xs ${p.stock === 0 ? "text-red-400" : "text-gray-500"}`}>Stock: {p.stock}</span>
-                </div>
-                <div className="flex gap-2 mt-3">
-                  <button onClick={() => openEdit(p)} className="flex-1 flex items-center justify-center gap-1 text-xs border border-gray-600 text-gray-300 hover:border-gold hover:text-gold py-2 rounded-lg transition">
-                    <EditIcon /> Edit
+
+      {/* ── Search + Category Filter Bar ─────────────────────────────────── */}
+      <div className="flex flex-col sm:flex-row gap-3 mb-6">
+        {/* Search input */}
+        <div className="relative flex-1">
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none">
+            <SearchIcon />
+          </span>
+          <input
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Search by name or description..."
+            className="w-full bg-transparent border border-gray-700 pl-10 pr-4 py-2.5 rounded-lg text-sm focus:outline-none focus:border-gold transition text-white"
+          />
+          {search && (
+            <button
+              onClick={() => setSearch("")}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition"
+            >
+              <XIcon />
+            </button>
+          )}
+        </div>
+
+        {/* Category filter dropdown */}
+        <div ref={catDropdownRef} className="relative sm:w-52 flex-shrink-0">
+          <button
+            type="button"
+            onClick={() => setCatDropdownOpen(v => !v)}
+            className={`w-full flex items-center justify-between gap-2 border px-3 py-2.5 rounded-lg text-sm transition focus:outline-none ${
+              filterCategory
+                ? "border-gold/50 bg-gold/8 text-gold"
+                : catDropdownOpen
+                  ? "border-gold text-white bg-transparent"
+                  : "border-gray-700 text-gray-400 hover:border-gray-500 hover:text-white bg-transparent"
+            }`}
+          >
+            <span className="flex items-center gap-2 min-w-0">
+              <FilterIcon />
+              <span className="truncate">{selectedCatLabel}</span>
+            </span>
+            <svg
+              width="14" height="14" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" strokeWidth="2"
+              className={`flex-shrink-0 transition-transform duration-200 ${catDropdownOpen ? "rotate-180" : ""}`}
+            >
+              <polyline points="6 9 12 15 18 9" />
+            </svg>
+          </button>
+
+          <AnimatePresence>
+            {catDropdownOpen && (
+              <motion.ul
+                initial={{ opacity: 0, y: -6, scaleY: 0.95 }}
+                animate={{ opacity: 1, y: 0, scaleY: 1 }}
+                exit={{ opacity: 0, y: -6, scaleY: 0.95 }}
+                transition={{ duration: 0.15 }}
+                style={{ transformOrigin: "top" }}
+                className="absolute z-50 w-full mt-1.5 rounded-xl border border-gray-700 bg-gray-900 shadow-2xl overflow-hidden"
+              >
+                {/* "All" option */}
+                <li>
+                  <button
+                    type="button"
+                    onClick={() => { setFilterCategory(""); setCatDropdownOpen(false); }}
+                    className={`w-full flex items-center justify-between px-4 py-2.5 text-sm transition-colors ${
+                      !filterCategory
+                        ? "bg-gold/15 text-gold"
+                        : "text-gray-300 hover:bg-white/5 hover:text-white"
+                    }`}
+                  >
+                    <span>All Categories</span>
+                    {!filterCategory && (
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                    )}
                   </button>
-                  <button onClick={() => toggleAvailable(p)} className={`flex-1 text-xs border py-2 rounded-lg transition ${p.is_available ? "border-yellow-600/40 text-yellow-500 hover:bg-yellow-600/10" : "border-green-500/40 text-green-400 hover:bg-green-500/10"}`}>
-                    {p.is_available ? "Hide" : "Show"}
-                  </button>
-                  <button onClick={() => setDeleteTarget(p)} className="p-2 border border-red-500/30 text-red-400 rounded-lg hover:bg-red-400/10 transition"><TrashIcon /></button>
-                </div>
-              </div>
-            </motion.div>
-          ))}
+                </li>
+                {categoryOptions.map(c => {
+                  const isSelected = String(c.id) === filterCategory;
+                  return (
+                    <li key={c.id}>
+                      <button
+                        type="button"
+                        onClick={() => { setFilterCategory(String(c.id)); setCatDropdownOpen(false); }}
+                        className={`w-full flex items-center justify-between px-4 py-2.5 text-sm transition-colors ${
+                          isSelected
+                            ? "bg-gold/15 text-gold"
+                            : "text-gray-300 hover:bg-white/5 hover:text-white"
+                        }`}
+                      >
+                        <span>{c.name}</span>
+                        {isSelected && (
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="20 6 9 17 4 12" />
+                          </svg>
+                        )}
+                      </button>
+                    </li>
+                  );
+                })}
+              </motion.ul>
+            )}
+          </AnimatePresence>
+        </div>
+      </div>
+
+      {/* Active filter chips + result count */}
+      {(activeFilterCount > 0 || !loading) && (
+        <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+          <p className="text-gray-500 text-xs">
+            {loading ? "Loading…" : `${filteredProducts.length} product${filteredProducts.length !== 1 ? "s" : ""}${activeFilterCount > 0 ? " found" : ""}`}
+          </p>
+          {activeFilterCount > 0 && (
+            <div className="flex items-center gap-2 flex-wrap">
+              {search.trim() && (
+                <span className="flex items-center gap-1 text-xs bg-gold/10 border border-gold/25 text-yellow-400 px-2.5 py-1 rounded-full">
+                  "{search.trim()}"
+                  <button onClick={() => setSearch("")} className="ml-0.5 hover:text-white transition"><XIcon /></button>
+                </span>
+              )}
+              {filterCategory && (
+                <span className="flex items-center gap-1 text-xs bg-gold/10 border border-gold/25 text-yellow-400 px-2.5 py-1 rounded-full">
+                  {selectedCatLabel}
+                  <button onClick={() => setFilterCategory("")} className="ml-0.5 hover:text-white transition"><XIcon /></button>
+                </span>
+              )}
+              <button onClick={clearFilters} className="text-xs text-gray-500 hover:text-white transition underline underline-offset-2">
+                Clear all
+              </button>
+            </div>
+          )}
         </div>
       )}
+      {/* ─────────────────────────────────────────────────────────────────── */}
+
+      {loading ? <p className="text-gray-400">Loading...</p> : (
+        <>
+          {filteredProducts.length === 0 ? (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+              className="glass rounded-2xl p-12 text-center"
+            >
+              <div className="flex justify-center mb-3 text-gray-600">
+                <SearchIcon />
+              </div>
+              <p className="text-gray-400 text-sm font-medium mb-1">No products found</p>
+              <p className="text-gray-600 text-xs">
+                {activeFilterCount > 0 ? "Try adjusting your search or filter." : "Add your first product to get started."}
+              </p>
+              {activeFilterCount > 0 && (
+                <button onClick={clearFilters} className="mt-4 text-xs text-gold hover:text-yellow-300 transition underline underline-offset-2">
+                  Clear filters
+                </button>
+              )}
+            </motion.div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-5">
+              {filteredProducts.map(p => (
+                <motion.div key={p.id} layout className="glass rounded-2xl overflow-hidden">
+                  <div className="relative h-44 bg-gray-900">
+                    {getThumb(p)
+                      ? <img src={getThumb(p)} alt={p.name} className="h-full w-full object-cover" />
+                      : <div className="h-full flex items-center justify-center text-gray-700"><ImgIcon /></div>}
+                    <div className="absolute top-2 right-2 flex gap-1.5">
+                      <Badge label={p.is_available ? "Live" : "Hidden"} color={p.is_available ? "green" : "red"} />
+                      {p.stock === 0 && <Badge label="Out of Stock" color="red" />}
+                    </div>
+                    {p.images?.length > 1 && (
+                      <div className="absolute bottom-2 left-2">
+                        <span className="bg-black/60 text-white text-xs px-2 py-0.5 rounded-full">{p.images.length} photos</span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="p-4">
+                    <div className="flex items-start justify-between gap-2 mb-0.5">
+                      <h3 className="font-semibold text-white truncate">{p.name}</h3>
+                      {getCatName(p) && (
+                        <span className="flex-shrink-0 text-xs bg-gold/10 border border-gold/20 text-yellow-500 px-2 py-0.5 rounded-full">
+                          {getCatName(p)}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-gray-400 text-xs mt-0.5 truncate">{p.description}</p>
+                    <div className="flex items-center justify-between mt-3">
+                      <span className="text-gold font-semibold text-sm">₹ {Number(p.price).toLocaleString("en-IN")}</span>
+                      <span className={`text-xs ${p.stock === 0 ? "text-red-400" : "text-gray-500"}`}>Stock: {p.stock}</span>
+                    </div>
+                    <div className="flex gap-2 mt-3">
+                      <button onClick={() => openEdit(p)} className="flex-1 flex items-center justify-center gap-1 text-xs border border-gray-600 text-gray-300 hover:border-gold hover:text-gold py-2 rounded-lg transition">
+                        <EditIcon /> Edit
+                      </button>
+                      <button onClick={() => toggleAvailable(p)} className={`flex-1 text-xs border py-2 rounded-lg transition ${p.is_available ? "border-yellow-600/40 text-yellow-500 hover:bg-yellow-600/10" : "border-green-500/40 text-green-400 hover:bg-green-500/10"}`}>
+                        {p.is_available ? "Hide" : "Show"}
+                      </button>
+                      <button onClick={() => setDeleteTarget(p)} className="p-2 border border-red-500/30 text-red-400 rounded-lg hover:bg-red-400/10 transition"><TrashIcon /></button>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          )}
+        </>
+      )}
+
       <AnimatePresence>
         {showModal && (
           <Modal title={editing ? "Edit Product" : "Add New Product"} onClose={() => setShowModal(false)} maxW="max-w-xl">
@@ -1142,7 +1343,6 @@ function OrdersTab() {
     <motion.div initial={{ opacity:0 }} animate={{ opacity:1 }} exit={{ opacity:0 }}>
       <h2 className="text-2xl sm:text-3xl font-luxury text-gold mb-6">Orders</h2>
 
-      {/* Filters — 1 col on mobile, 2 on sm, 4 on md */}
       <div className="glass rounded-2xl p-4 mb-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
         <div className="relative">
           <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"><SearchIcon /></span>
@@ -1167,7 +1367,6 @@ function OrdersTab() {
               <div className="flex items-center gap-3 sm:gap-4 p-4 sm:p-5 cursor-pointer hover:bg-white/2 transition"
                 onClick={() => setExpanded(expanded === order.id ? null : order.id)}>
                 <div className="flex-1 min-w-0">
-                  {/* Mobile: stacked layout */}
                   <div className="sm:hidden space-y-1">
                     <div className="flex items-center justify-between">
                       <p className="text-white font-medium text-sm">#{order.id} — {order.username}</p>
@@ -1179,7 +1378,6 @@ function OrdersTab() {
                       <p className="text-gold font-semibold text-sm">₹ {Number(order.total).toLocaleString("en-IN")}</p>
                     </div>
                   </div>
-                  {/* Desktop: grid layout */}
                   <div className="hidden sm:grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
                     <div><p className="text-gray-500 text-xs">Order</p><p className="text-white font-medium">#{order.id}</p></div>
                     <div><p className="text-gray-500 text-xs">Customer</p><p className="text-white">{order.username}</p><p className="text-gray-500 text-xs">{order.email}</p></div>
