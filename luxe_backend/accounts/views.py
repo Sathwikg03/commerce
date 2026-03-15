@@ -5,6 +5,10 @@ import urllib.request
 import urllib.error
 from datetime import timedelta
 
+from .models import UserAddress
+from .serializers import UserAddressSerializer
+ 
+
 from django.utils import timezone
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -19,6 +23,9 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from .serializers import RegisterSerializer, UserSerializer, AdminCreateSerializer
+
+import re
+from rest_framework import parsers
 
 User = get_user_model()
 
@@ -474,3 +481,301 @@ class AdminStatsView(APIView):
             'total_orders':   total_orders,
             'total_revenue':  total_revenue,
         })
+<<<<<<< HEAD
+=======
+#────────────────────────────────────────────────────────────────────────────
+
+class AdminUserOrdersView(APIView):
+    """
+    GET /api/admin/users/<pk>/orders/
+    Returns all orders placed by the specified user, for admin use.
+    """
+    permission_classes = [IsAdminUser]
+
+    def get(self, request, pk):
+        from orders.models import Order
+        from orders.serializers import OrderSerializer
+
+        try:
+            user = User.objects.get(pk=pk)
+        except User.DoesNotExist:
+            return Response({'detail': 'User not found.'}, status=404)
+
+        orders = Order.objects.filter(user=user).prefetch_related('items').order_by('-created_at')
+        serializer = OrderSerializer(orders, many=True)
+        return Response(serializer.data)
+
+
+class AdminUserReviewsView(APIView):
+    """
+    GET /api/admin/users/<pk>/reviews/
+    Returns all reviews written by the specified user, including product info.
+    """
+    permission_classes = [IsAdminUser]
+
+    def get(self, request, pk):
+        from reviews.models import Review
+
+        try:
+            user = User.objects.get(pk=pk)
+        except User.DoesNotExist:
+            return Response({'detail': 'User not found.'}, status=404)
+
+        reviews = Review.objects.filter(user=user).select_related('product').order_by('-created_at')
+
+        data = []
+        for r in reviews:
+            product = r.product
+            # Get first product image URL
+            primary_image = None
+            if product:
+                imgs = product.images.all()
+                if imgs.exists():
+                    primary_image = imgs.first().url
+                elif product.image_url:
+                    primary_image = product.image_url
+
+            data.append({
+                'id':            r.id,
+                'rating':        r.rating,
+                'title':         r.title,
+                'body':          r.body,
+                'created_at':    r.created_at,
+                'product_id':    product.id   if product else None,
+                'product_name':  product.name if product else 'Deleted product',
+                'product_image': primary_image,
+            })
+
+        return Response(data)
+# ─────────────────────────────────────────────────────────────────────────────
+
+class UserAddressListCreateView(generics.ListCreateAPIView):
+    """
+    GET  /api/addresses/   — list the logged-in user's addresses
+    POST /api/addresses/   — create a new address
+    """
+    serializer_class   = UserAddressSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return UserAddress.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+class UserAddressDetailView(generics.RetrieveUpdateDestroyAPIView):
+    """
+    GET / PATCH / DELETE /api/addresses/<id>/
+    Users can only touch their own addresses.
+    """
+    serializer_class   = UserAddressSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return UserAddress.objects.filter(user=self.request.user)
+
+
+class UserAddressSetDefaultView(APIView):
+    """
+    PATCH /api/addresses/<id>/set-default/
+    Sets the given address as default, unsets all others.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def patch(self, request, pk):
+        try:
+            addr = UserAddress.objects.get(pk=pk, user=request.user)
+        except UserAddress.DoesNotExist:
+            return Response({'detail': 'Address not found.'}, status=404)
+        addr.is_default = True
+        addr.save()   # model.save() handles unsetting others
+        return Response(UserAddressSerializer(addr).data)
+
+
+# ── Admin: per-user orders & reviews ─────────────────────────────────────────
+
+class AdminUserOrdersView(APIView):
+    """GET /api/admin/users/<pk>/orders/"""
+    permission_classes = [IsAdminUser]
+
+    def get(self, request, pk):
+        from orders.models import Order
+        from orders.serializers import OrderSerializer
+        try:
+            user = User.objects.get(pk=pk)
+        except User.DoesNotExist:
+            return Response({'detail': 'User not found.'}, status=404)
+        orders = Order.objects.filter(user=user).prefetch_related('items').order_by('-created_at')
+        return Response(OrderSerializer(orders, many=True).data)
+
+
+class AdminUserReviewsView(APIView):
+    """GET /api/admin/users/<pk>/reviews/"""
+    permission_classes = [IsAdminUser]
+
+    def get(self, request, pk):
+        from reviews.models import Review
+        try:
+            user = User.objects.get(pk=pk)
+        except User.DoesNotExist:
+            return Response({'detail': 'User not found.'}, status=404)
+        reviews = Review.objects.filter(user=user).select_related('product').order_by('-created_at')
+        data = []
+        for r in reviews:
+            product = r.product
+            primary_image = None
+            if product:
+                imgs = product.images.all()
+                primary_image = imgs.first().url if imgs.exists() else product.image_url or None
+            data.append({
+                'id': r.id, 'rating': r.rating, 'title': r.title,
+                'body': r.body, 'created_at': r.created_at,
+                'product_id': product.id if product else None,
+                'product_name': product.name if product else 'Deleted product',
+                'product_image': primary_image,
+            })
+        return Response(data)
+
+# ─────────────────────────────────────────────────────────────────────────────
+# APPEND these views to the bottom of luxe_backend/accounts/views.py
+# Also add `avatar` to the UserSerializer fields list (see serializers.py)
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+class AvatarUploadView(APIView):
+    """
+    POST /api/profile/avatar/
+    Multipart form: field name = "avatar"
+    Returns updated user serializer data.
+    """
+    permission_classes = [IsAuthenticated]
+    parser_classes     = [parsers.MultiPartParser, parsers.FormParser]
+
+    def post(self, request):
+        user = request.user
+        file = request.FILES.get('avatar')
+        if not file:
+            return Response({'detail': 'No file provided.'}, status=400)
+
+        # Basic validation
+        allowed = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
+        if file.content_type not in allowed:
+            return Response({'detail': 'Only JPEG, PNG, WEBP or GIF images are allowed.'}, status=400)
+        if file.size > 5 * 1024 * 1024:  # 5 MB cap
+            return Response({'detail': 'Image must be under 5 MB.'}, status=400)
+
+        # Delete old avatar to save storage
+        if user.avatar:
+            try:
+                user.avatar.delete(save=False)
+            except Exception:
+                pass
+
+        user.avatar = file
+        user.save(update_fields=['avatar'])
+        return Response(UserSerializer(user, context={'request': request}).data)
+
+
+class AvatarDeleteView(APIView):
+    """DELETE /api/profile/avatar/"""
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request):
+        user = request.user
+        if user.avatar:
+            try:
+                user.avatar.delete(save=False)
+            except Exception:
+                pass
+            user.avatar = None
+            user.save(update_fields=['avatar'])
+        return Response(UserSerializer(user, context={'request': request}).data)
+
+
+class EmailChangeRequestView(APIView):
+    """
+    POST /api/profile/change-email/request/
+    Body: { "new_email": "..." }
+    Sends a 6-digit OTP to the NEW email address.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        new_email = request.data.get('new_email', '').strip().lower()
+
+        if not new_email:
+            return Response({'detail': 'New email is required.'}, status=400)
+
+        if not re.match(r'^[^\s@]+@[^\s@]+\.[^\s@]+$', new_email):
+            return Response({'detail': 'Enter a valid email address.'}, status=400)
+
+        if new_email == request.user.email.lower():
+            return Response({'detail': 'This is already your current email.'}, status=400)
+
+        if User.objects.filter(email__iexact=new_email).exclude(pk=request.user.pk).exists():
+            return Response({'detail': 'This email is already in use by another account.'}, status=400)
+
+        otp = generate_otp()
+        user = request.user
+        user.reset_otp        = otp
+        user.reset_otp_expiry = timezone.now() + timedelta(minutes=OTP_EXPIRY_MINUTES)
+        user.save(update_fields=['reset_otp', 'reset_otp_expiry'])
+
+        # Store the pending new email in the session/cache via a simple approach:
+        # We encode it in a signed way using a custom field.
+        # For simplicity, store it temporarily in an unused field or use cache.
+        # Here we use the session.
+        request.session['pending_email_change'] = new_email
+        request.session.save()
+
+        send_otp_email(
+            user, otp,
+            subject='Verify your new email — Luxe',
+            purpose_line=f'Use this code to verify your new email address: {new_email}'
+        )
+
+        return Response({'detail': 'Verification code sent to your new email address.'})
+
+
+class EmailChangeVerifyView(APIView):
+    """
+    POST /api/profile/change-email/verify/
+    Body: { "otp": "123456" }
+    Verifies OTP and updates the email.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        otp       = request.data.get('otp', '').strip()
+        new_email = request.session.get('pending_email_change', '')
+
+        if not otp:
+            return Response({'detail': 'OTP is required.'}, status=400)
+
+        if not new_email:
+            return Response({'detail': 'No pending email change. Please request again.'}, status=400)
+
+        user = request.user
+
+        if not user.reset_otp or user.reset_otp != otp:
+            return Response({'detail': 'Invalid or expired code.'}, status=400)
+
+        if not user.reset_otp_expiry or timezone.now() > user.reset_otp_expiry:
+            return Response({'detail': 'Code has expired. Please request again.'}, status=400)
+
+        user.email            = new_email
+        user.reset_otp        = ''
+        user.reset_otp_expiry = None
+        user.save(update_fields=['email', 'reset_otp', 'reset_otp_expiry'])
+
+        # Clear session
+        try:
+            del request.session['pending_email_change']
+            request.session.save()
+        except KeyError:
+            pass
+
+        return Response(UserSerializer(user, context={'request': request}).data)
+
+>>>>>>> 5d434ed (feat: admin user profile, multi-address, avatar upload, email change OTP, checkout modal)

@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
+from .models import UserAddress
 
 User = get_user_model()
 
@@ -29,10 +30,28 @@ class RegisterSerializer(serializers.ModelSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
+    avatar_url = serializers.SerializerMethodField()
+
     class Meta:
         model  = User
-        fields = ('id', 'username', 'email', 'full_name', 'is_staff', 'is_active', 'ban_reason', 'date_joined')
-        read_only_fields = ('id', 'date_joined')
+        fields = (
+            'id', 'username', 'email', 'full_name',
+            'phone', 'address',
+            'avatar', 'avatar_url',
+            'is_staff', 'is_active', 'ban_reason',
+            'is_email_verified',
+            'date_joined', 'last_login',
+        )
+        read_only_fields = ('id', 'date_joined', 'last_login', 'is_email_verified', 'avatar_url')
+        extra_kwargs = {'avatar': {'required': False, 'allow_null': True}}
+
+    def get_avatar_url(self, obj):
+        if not obj.avatar:
+            return None
+        request = self.context.get('request')
+        if request:
+            return request.build_absolute_uri(obj.avatar.url)
+        return obj.avatar.url
 
 
 class AdminCreateSerializer(serializers.Serializer):
@@ -54,3 +73,11 @@ class AdminCreateSerializer(serializers.Serializer):
             password  = validated_data['password'],
             is_staff  = True,
         )
+
+
+class UserAddressSerializer(serializers.ModelSerializer):
+    class Meta:
+        model  = UserAddress
+        fields = ('id', 'label', 'full_name', 'phone', 'line1', 'line2',
+                  'city', 'state', 'pincode', 'is_default', 'created_at')
+        read_only_fields = ('id', 'created_at')

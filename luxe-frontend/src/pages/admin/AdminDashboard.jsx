@@ -8,6 +8,7 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from "recharts";
 import { AdminContext, ADMIN_API } from "../../context/AdminContext";
+import AdminUserProfile from "./AdminUserProfile";
 
 // ── Helper ────────────────────────────────────────────────────────────────────
 const parseError = (err) => {
@@ -27,13 +28,18 @@ const parseError = (err) => {
 };
 
 // ── Icons ─────────────────────────────────────────────────────────────────────
+<<<<<<< HEAD
 const S = { fill:"none", stroke:"currentColor", strokeWidth:"1.8", strokeLinecap:"round", strokeLinejoin:"round" };
+=======
+const S = { fill: "none", stroke: "currentColor", strokeWidth: "1.8", strokeLinecap: "round", strokeLinejoin: "round" };
+>>>>>>> 5d434ed (feat: admin user profile, multi-address, avatar upload, email change OTP, checkout modal)
 
 const Icon = ({ d, size = 20 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" {...S}>
     {Array.isArray(d) ? d.map((p, i) => <path key={i} d={p} />) : <path d={d} />}
   </svg>
 );
+<<<<<<< HEAD
 const UsersIcon  = () => (<svg width={20} height={20} viewBox="0 0 24 24" {...S}><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>);
 const BoxIcon    = () => (<svg width={20} height={20} viewBox="0 0 24 24" {...S}><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>);
 const OrdersIcon = () => (<svg width={20} height={20} viewBox="0 0 24 24" {...S}><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>);
@@ -51,26 +57,50 @@ const XIcon      = () => (<svg width={16} height={16} viewBox="0 0 24 24" {...S}
 const MenuIcon   = () => (<svg width={20} height={20} viewBox="0 0 24 24" {...S}><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>);
 const CloseIcon  = () => (<svg width={20} height={20} viewBox="0 0 24 24" {...S}><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>);
 const FilterIcon = () => (<svg width={16} height={16} viewBox="0 0 24 24" {...S}><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>);
+=======
+const UsersIcon = () => (<svg width={20} height={20} viewBox="0 0 24 24" {...S}><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>);
+const BoxIcon = () => (<svg width={20} height={20} viewBox="0 0 24 24" {...S}><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" /><polyline points="3.27 6.96 12 12.01 20.73 6.96" /><line x1="12" y1="22.08" x2="12" y2="12" /></svg>);
+const OrdersIcon = () => (<svg width={20} height={20} viewBox="0 0 24 24" {...S}><polyline points="9 11 12 14 22 4" /><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" /></svg>);
+const DashIcon = () => (<svg width={20} height={20} viewBox="0 0 24 24" {...S}><rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="14" y="14" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /></svg>);
+const LogoutIcon = () => (<svg width={20} height={20} viewBox="0 0 24 24" {...S}><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>);
+const PlusIcon = () => (<svg width={20} height={20} viewBox="0 0 24 24" {...S}><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>);
+const TrashIcon = () => (<svg width={20} height={20} viewBox="0 0 24 24" {...S}><polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14H6L5 6" /><line x1="10" y1="11" x2="10" y2="17" /><line x1="14" y1="11" x2="14" y2="17" /><path d="M9 6V4h6v2" /></svg>);
+const EditIcon = () => (<svg width={20} height={20} viewBox="0 0 24 24" {...S}><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>);
+const SearchIcon = () => (<svg width={20} height={20} viewBox="0 0 24 24" {...S}><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>);
+const ShieldIcon = () => (<svg width={20} height={20} viewBox="0 0 24 24" {...S}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>);
+const ImgIcon = () => (<svg width={20} height={20} viewBox="0 0 24 24" {...S}><rect x="3" y="3" width="18" height="18" rx="2" ry="2" /><circle cx="8.5" cy="8.5" r="1.5" /><polyline points="21 15 16 10 5 21" /></svg>);
+const TagIcon = () => (<svg width={20} height={20} viewBox="0 0 24 24" {...S}><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" /><line x1="7" y1="7" x2="7.01" y2="7" /></svg>);
+const CheckIcon = () => (<svg width={16} height={16} viewBox="0 0 24 24" {...S}><polyline points="20 6 9 17 4 12" /></svg>);
+const XIcon = () => (<svg width={16} height={16} viewBox="0 0 24 24" {...S}><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>);
+const MenuIcon = () => (<svg width={20} height={20} viewBox="0 0 24 24" {...S}><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" /></svg>);
+const CloseIcon = () => (<svg width={20} height={20} viewBox="0 0 24 24" {...S}><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>);
+const FilterIcon = () => (<svg width={16} height={16} viewBox="0 0 24 24" {...S}><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" /></svg>);
+const ViewIcon = () => (<svg width={16} height={16} viewBox="0 0 24 24" {...S}><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></svg>);
+>>>>>>> 5d434ed (feat: admin user profile, multi-address, avatar upload, email change OTP, checkout modal)
 
 // ── Shared UI ─────────────────────────────────────────────────────────────────
 const Badge = ({ label, color }) => {
   const map = {
-    green:  "bg-green-500/15 text-green-400 border-green-500/30",
-    red:    "bg-red-500/15 text-red-400 border-red-500/30",
+    green: "bg-green-500/15 text-green-400 border-green-500/30",
+    red: "bg-red-500/15 text-red-400 border-red-500/30",
     yellow: "bg-yellow-500/15 text-yellow-400 border-yellow-500/30",
-    blue:   "bg-blue-500/15 text-blue-400 border-blue-500/30",
-    gray:   "bg-gray-500/15 text-gray-400 border-gray-500/30",
-    gold:   "bg-yellow-600/15 text-yellow-500 border-yellow-600/30",
+    blue: "bg-blue-500/15 text-blue-400 border-blue-500/30",
+    gray: "bg-gray-500/15 text-gray-400 border-gray-500/30",
+    gold: "bg-yellow-600/15 text-yellow-500 border-yellow-600/30",
   };
   return <span className={`text-xs px-2 py-0.5 rounded-full border ${map[color] || map.gray}`}>{label}</span>;
 };
 
+<<<<<<< HEAD
 const statusColor = s => ({ pending:"yellow", confirmed:"blue", shipped:"gold", delivered:"green", cancelled:"red" }[s] || "gray");
+=======
+const statusColor = s => ({ pending: "yellow", confirmed: "blue", shipped: "gold", delivered: "green", cancelled: "red" }[s] || "gray");
+>>>>>>> 5d434ed (feat: admin user profile, multi-address, avatar upload, email change OTP, checkout modal)
 
 const Modal = ({ title, onClose, children, maxW = "max-w-lg" }) => (
   <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
     <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
-    <motion.div initial={{ scale:0.92, opacity:0 }} animate={{ scale:1, opacity:1 }}
+    <motion.div initial={{ scale: 0.92, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
       className={`relative glass rounded-2xl p-5 sm:p-8 w-full ${maxW} shadow-luxury z-10 max-h-[90vh] overflow-y-auto`}>
       <div className="flex justify-between items-center mb-6">
         <h3 className="text-xl font-luxury text-gold">{title}</h3>
@@ -84,7 +114,7 @@ const Modal = ({ title, onClose, children, maxW = "max-w-lg" }) => (
 const DeleteConfirmModal = ({ message, subMessage, onConfirm, onCancel, loading }) => (
   <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
     <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onCancel} />
-    <motion.div initial={{ scale:0.92, opacity:0 }} animate={{ scale:1, opacity:1 }}
+    <motion.div initial={{ scale: 0.92, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
       className="relative glass rounded-2xl p-8 w-full max-w-sm shadow-luxury z-10 text-center">
       <div className="flex justify-center mb-4">
         <div className="w-14 h-14 rounded-full bg-red-500/15 border border-red-500/30 flex items-center justify-center text-red-400"><TrashIcon /></div>
@@ -108,17 +138,17 @@ const BanModal = ({ user, onConfirm, onCancel, loading }) => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
       <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onCancel} />
-      <motion.div initial={{ scale:0.92, opacity:0 }} animate={{ scale:1, opacity:1 }}
+      <motion.div initial={{ scale: 0.92, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
         className="relative glass rounded-2xl p-8 w-full max-w-md shadow-luxury z-10">
         <div className="flex items-center gap-3 mb-5">
           <div className="w-10 h-10 rounded-full bg-red-500/15 border border-red-500/30 flex items-center justify-center text-red-400 flex-shrink-0">
-            <Icon d={["M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z","M12 9v4","M12 17h.01"]} />
+            <Icon d={["M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z", "M12 9v4", "M12 17h.01"]} />
           </div>
           <div><h3 className="text-lg font-semibold text-white">Ban User</h3><p className="text-gray-400 text-sm">@{user?.username}</p></div>
         </div>
         <p className="text-gray-400 text-sm mb-4">This user will be locked out and shown your reason when they try to log in.</p>
         <textarea value={reason} onChange={e => { setReason(e.target.value); setErr(""); }} rows={3}
-          placeholder="Enter ban reason (e.g. Violation of terms, Suspicious activity...)"
+          placeholder="Enter ban reason..."
           className="w-full bg-transparent border border-gray-600 focus:border-red-400 p-3 rounded-lg text-white text-sm resize-none focus:outline-none transition" />
         {err && <p className="text-red-400 text-xs mt-1">{err}</p>}
         <div className="flex gap-3 mt-5">
@@ -136,10 +166,17 @@ const ImageUrlsInput = ({ urls, onChange }) => {
   const [commonUrl, setCommonUrl] = useState(urls[urls.length - 1] || "https://i.postimg.cc/V6y1Hcym/Gemini-Generated-Image-t1abwdt1abwdt1ab.png");
   const productUrls = urls.slice(0, -1);
   const syncCommon = (newCommon) => { setCommonUrl(newCommon); onChange([...productUrls, newCommon]); };
+<<<<<<< HEAD
   const add    = ()      => onChange([...productUrls, "", commonUrl]);
   const remove = (i)     => onChange([...urls.filter((_, idx) => idx !== i && idx !== urls.length - 1), commonUrl]);
   const update = (i, v)  => onChange(urls.map((u, idx) => idx === i ? v : u));
   const move   = (i, dir) => { const editable = [...productUrls]; [editable[i], editable[i + dir]] = [editable[i + dir], editable[i]]; onChange([...editable, commonUrl]); };
+=======
+  const add = () => onChange([...productUrls, "", commonUrl]);
+  const remove = (i) => onChange([...urls.filter((_, idx) => idx !== i && idx !== urls.length - 1), commonUrl]);
+  const update = (i, v) => onChange(urls.map((u, idx) => idx === i ? v : u));
+  const move = (i, dir) => { const editable = [...productUrls];[editable[i], editable[i + dir]] = [editable[i + dir], editable[i]]; onChange([...editable, commonUrl]); };
+>>>>>>> 5d434ed (feat: admin user profile, multi-address, avatar upload, email change OTP, checkout modal)
   const displayUrls = productUrls;
   return (
     <div className="space-y-2">
@@ -155,14 +192,18 @@ const ImageUrlsInput = ({ urls, onChange }) => {
           <div className="w-10 h-10 rounded-lg overflow-hidden bg-gray-800 flex-shrink-0 border border-gray-700">
             {commonUrl ? <img src={commonUrl} alt="" className="w-full h-full object-cover" onError={e => { e.target.style.display = "none"; }} /> : <div className="w-full h-full flex items-center justify-center text-gray-600"><ImgIcon /></div>}
           </div>
+<<<<<<< HEAD
           <input type="url" value={commonUrl} onChange={e => syncCommon(e.target.value)} placeholder="Shared image URL (always last)"
+=======
+          <input type="url" value={commonUrl} onChange={e => syncCommon(e.target.value)} placeholder="Shared image URL"
+>>>>>>> 5d434ed (feat: admin user profile, multi-address, avatar upload, email change OTP, checkout modal)
             className="flex-1 bg-transparent border border-gold/30 focus:border-gold p-2.5 rounded-lg focus:outline-none transition text-white text-sm" />
         </div>
       </div>
       {displayUrls.length === 0 && (
         <div className="border border-dashed border-gray-700 rounded-lg p-4 text-center">
           <div className="flex justify-center mb-2 text-gray-600"><ImgIcon /></div>
-          <p className="text-gray-600 text-xs">No additional images yet. Click "Add Image URL" to add more.</p>
+          <p className="text-gray-600 text-xs">No additional images yet.</p>
         </div>
       )}
       {displayUrls.map((url, i) => (
@@ -174,24 +215,36 @@ const ImageUrlsInput = ({ urls, onChange }) => {
             className="flex-1 min-w-0 bg-transparent border border-gray-600 p-2.5 rounded-lg focus:outline-none focus:border-gold transition text-white text-sm" />
           <div className="flex flex-col gap-0.5">
             <button type="button" onClick={() => move(i, -1)} disabled={i === 0} className="text-gray-500 hover:text-gold transition disabled:opacity-20 text-xs p-0.5">▲</button>
-            <button type="button" onClick={() => move(i,  1)} disabled={i === displayUrls.length - 1} className="text-gray-500 hover:text-gold transition disabled:opacity-20 text-xs p-0.5">▼</button>
+            <button type="button" onClick={() => move(i, 1)} disabled={i === displayUrls.length - 1} className="text-gray-500 hover:text-gold transition disabled:opacity-20 text-xs p-0.5">▼</button>
           </div>
           <button type="button" onClick={() => remove(i)} className="text-gray-500 hover:text-red-400 transition flex-shrink-0"><TrashIcon /></button>
         </div>
       ))}
+<<<<<<< HEAD
       {displayUrls.length > 0 && <p className="text-gray-600 text-xs">First image is the main thumbnail. Common URL is always appended last.</p>}
+=======
+>>>>>>> 5d434ed (feat: admin user profile, multi-address, avatar upload, email change OTP, checkout modal)
     </div>
   );
 };
 
 const CategorySelector = ({ value, onChange, categoryOptions, setCategoryOptions }) => {
   const [showInlineAdd, setShowInlineAdd] = useState(false);
+<<<<<<< HEAD
   const [dropdownOpen,  setDropdownOpen]  = useState(false);
   const [newName, setNewName] = useState("");
   const [newSlug, setNewSlug] = useState("");
   const [adding, setAdding]   = useState(false);
   const [err, setErr]         = useState("");
   const dropdownRef           = useRef(null);
+=======
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [newName, setNewName] = useState("");
+  const [newSlug, setNewSlug] = useState("");
+  const [adding, setAdding] = useState(false);
+  const [err, setErr] = useState("");
+  const dropdownRef = useRef(null);
+>>>>>>> 5d434ed (feat: admin user profile, multi-address, avatar upload, email change OTP, checkout modal)
 
   useEffect(() => {
     const handler = (e) => { if (dropdownRef.current && !dropdownRef.current.contains(e.target)) setDropdownOpen(false); };
@@ -229,8 +282,13 @@ const CategorySelector = ({ value, onChange, categoryOptions, setCategoryOptions
           </button>
           <AnimatePresence>
             {dropdownOpen && (
+<<<<<<< HEAD
               <motion.ul initial={{ opacity:0, y:-6, scaleY:0.95 }} animate={{ opacity:1, y:0, scaleY:1 }} exit={{ opacity:0, y:-6, scaleY:0.95 }}
                 transition={{ duration:0.15 }} style={{ transformOrigin:"top" }}
+=======
+              <motion.ul initial={{ opacity: 0, y: -6, scaleY: 0.95 }} animate={{ opacity: 1, y: 0, scaleY: 1 }} exit={{ opacity: 0, y: -6, scaleY: 0.95 }}
+                transition={{ duration: 0.15 }} style={{ transformOrigin: "top" }}
+>>>>>>> 5d434ed (feat: admin user profile, multi-address, avatar upload, email change OTP, checkout modal)
                 className="absolute z-50 w-full mt-1.5 rounded-xl border border-gray-700 bg-gray-900 shadow-2xl overflow-hidden">
                 {allOptions.map(c => {
                   const isSelected = String(c.id) === String(value) || (c.id === "" && !value);
@@ -248,14 +306,18 @@ const CategorySelector = ({ value, onChange, categoryOptions, setCategoryOptions
             )}
           </AnimatePresence>
         </div>
+<<<<<<< HEAD
         <button type="button" onClick={() => { setShowInlineAdd(v => !v); setErr(""); setNewName(""); setNewSlug(""); }} title="Add new category"
+=======
+        <button type="button" onClick={() => { setShowInlineAdd(v => !v); setErr(""); setNewName(""); setNewSlug(""); }}
+>>>>>>> 5d434ed (feat: admin user profile, multi-address, avatar upload, email change OTP, checkout modal)
           className={`flex-shrink-0 p-3 rounded-lg border transition text-sm ${showInlineAdd ? "border-gold/40 bg-gold/10 text-gold" : "border-gray-600 text-gray-400 hover:border-gold/40 hover:text-gold hover:bg-gold/5"}`}>
           <PlusIcon />
         </button>
       </div>
       <AnimatePresence>
         {showInlineAdd && (
-          <motion.div initial={{ opacity:0, y:-6 }} animate={{ opacity:1, y:0 }} exit={{ opacity:0, y:-6 }}
+          <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }}
             className="border border-gold/20 bg-gold/5 rounded-xl p-3 space-y-2">
             <p className="text-xs text-gold font-medium mb-1">New Category</p>
             {err && <p className="text-red-400 text-xs">{err}</p>}
@@ -286,8 +348,10 @@ const CategorySelector = ({ value, onChange, categoryOptions, setCategoryOptions
 export default function AdminDashboard() {
   const { admin, adminLogout, checking } = useContext(AdminContext);
   const navigate = useNavigate();
-  const [tab, setTab]               = useState("overview");
+  const [tab, setTab] = useState("overview");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  // ── NEW: profile viewer state ──────────────────────────────────────────────
+  const [viewingUserId, setViewingUserId] = useState(null);
 
   const handleLogout = () => { adminLogout(); navigate("/admin/login"); };
 
@@ -295,17 +359,25 @@ export default function AdminDashboard() {
     if (!checking && !admin) navigate("/admin/login");
   }, [checking, admin, navigate]);
 
+<<<<<<< HEAD
   const handleTabChange = (key) => { setTab(key); setSidebarOpen(false); };
+=======
+  const handleTabChange = (key) => {
+    setTab(key);
+    setSidebarOpen(false);
+    setViewingUserId(null); // clear profile when switching tabs
+  };
+>>>>>>> 5d434ed (feat: admin user profile, multi-address, avatar upload, email change OTP, checkout modal)
 
   if (checking) return <div className="min-h-screen bg-dark flex items-center justify-center"><p className="text-gray-400">Loading...</p></div>;
   if (!admin) return null;
 
   const navItems = [
-    { key:"overview",   label:"Overview",   Ic:DashIcon   },
-    { key:"users",      label:"Users",      Ic:UsersIcon  },
-    { key:"products",   label:"Products",   Ic:BoxIcon    },
-    { key:"categories", label:"Categories", Ic:TagIcon    },
-    { key:"orders",     label:"Orders",     Ic:OrdersIcon },
+    { key: "overview", label: "Overview", Ic: DashIcon },
+    { key: "users", label: "Users", Ic: UsersIcon },
+    { key: "products", label: "Products", Ic: BoxIcon },
+    { key: "categories", label: "Categories", Ic: TagIcon },
+    { key: "orders", label: "Orders", Ic: OrdersIcon },
   ];
 
   const SidebarContent = () => (
@@ -320,7 +392,11 @@ export default function AdminDashboard() {
       <nav className="flex-1 p-4 space-y-1">
         {navItems.map(({ key, label, Ic }) => (
           <button key={key} onClick={() => handleTabChange(key)}
+<<<<<<< HEAD
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm transition-all duration-200 ${tab === key ? "bg-gold/10 text-gold border border-gold/20" : "text-gray-400 hover:text-white hover:bg-white/5"}`}>
+=======
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm transition-all duration-200 ${tab === key && !viewingUserId ? "bg-gold/10 text-gold border border-gold/20" : "text-gray-400 hover:text-white hover:bg-white/5"}`}>
+>>>>>>> 5d434ed (feat: admin user profile, multi-address, avatar upload, email change OTP, checkout modal)
             <Ic /> {label}
           </button>
         ))}
@@ -350,11 +426,19 @@ export default function AdminDashboard() {
       <AnimatePresence>
         {sidebarOpen && (
           <>
+<<<<<<< HEAD
             <motion.div initial={{ opacity:0 }} animate={{ opacity:1 }} exit={{ opacity:0 }}
               className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden"
               onClick={() => setSidebarOpen(false)} />
             <motion.aside initial={{ x:-280 }} animate={{ x:0 }} exit={{ x:-280 }}
               transition={{ type:"spring", damping:28, stiffness:300 }}
+=======
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden"
+              onClick={() => setSidebarOpen(false)} />
+            <motion.aside initial={{ x: -280 }} animate={{ x: 0 }} exit={{ x: -280 }}
+              transition={{ type: "spring", damping: 28, stiffness: 300 }}
+>>>>>>> 5d434ed (feat: admin user profile, multi-address, avatar upload, email change OTP, checkout modal)
               className="fixed top-0 left-0 bottom-0 z-50 w-72 glass border-r border-gold/10 flex flex-col lg:hidden">
               <SidebarContent />
             </motion.aside>
@@ -370,13 +454,23 @@ export default function AdminDashboard() {
           </div>
         </header>
         <main className="flex-1 overflow-auto p-4 sm:p-6 lg:p-8">
-          <AnimatePresence mode="wait">
-            {tab === "overview"   && <OverviewTab   key="overview"   />}
-            {tab === "users"      && <UsersTab      key="users"      />}
-            {tab === "products"   && <ProductsTab   key="products"   />}
-            {tab === "categories" && <CategoriesTab key="categories" />}
-            {tab === "orders"     && <OrdersTab     key="orders"     />}
-          </AnimatePresence>
+          {/* ── Profile viewer takes over the whole main area ── */}
+          {viewingUserId ? (
+            <AdminUserProfile
+              userId={viewingUserId}
+              onBack={() => setViewingUserId(null)}
+              onDelete={() => setViewingUserId(null)}
+              onBanToggle={() => { }}
+            />
+          ) : (
+            <AnimatePresence mode="wait">
+              {tab === "overview" && <OverviewTab key="overview" />}
+              {tab === "users" && <UsersTab key="users" onViewProfile={setViewingUserId} />}
+              {tab === "products" && <ProductsTab key="products" />}
+              {tab === "categories" && <CategoriesTab key="categories" />}
+              {tab === "orders" && <OrdersTab key="orders" />}
+            </AnimatePresence>
+          )}
         </main>
       </div>
     </div>
@@ -385,6 +479,7 @@ export default function AdminDashboard() {
 
 // ═══ OVERVIEW ════════════════════════════════════════════════════════════════
 
+<<<<<<< HEAD
 const GOLD    = "#c8963e";
 const TEAL    = "#2aaa80";
 const BLUE    = "#5a8fc8";
@@ -408,16 +503,45 @@ const bucketOrders = (orders, filter) => {
   const cutoff  = startOf[filter]();
   const inRange = orders.filter(o => parseDate(o.created_at) >= cutoff);
 
+=======
+const GOLD = "#c8963e";
+const TEAL = "#2aaa80";
+const BLUE = "#5a8fc8";
+const PURPLE = "#7f77dd";
+const CORAL = "#d96038";
+const AMBER = "#e0941a";
+const GRAY = "#888780";
+const RCOLORS = [GOLD, TEAL, BLUE, PURPLE, CORAL, AMBER, GRAY];
+const STATUS_COLORS = { pending: AMBER, confirmed: BLUE, shipped: PURPLE, delivered: TEAL, cancelled: CORAL };
+
+const fmtRupee = (n) => "₹" + Number(n).toLocaleString("en-IN", { maximumFractionDigits: 0 });
+const parseDate = (s) => new Date(s);
+
+const startOf = {
+  week: () => { const d = new Date(); d.setDate(d.getDate() - 6); d.setHours(0, 0, 0, 0); return d; },
+  month: () => { const d = new Date(); d.setDate(d.getDate() - 29); d.setHours(0, 0, 0, 0); return d; },
+  year: () => { const d = new Date(); d.setMonth(d.getMonth() - 11); d.setDate(1); d.setHours(0, 0, 0, 0); return d; },
+};
+
+const bucketOrders = (orders, filter) => {
+  const cutoff = startOf[filter]();
+  const inRange = orders.filter(o => parseDate(o.created_at) >= cutoff);
+>>>>>>> 5d434ed (feat: admin user profile, multi-address, avatar upload, email change OTP, checkout modal)
   if (filter === "week") {
     const days = [];
     for (let i = 6; i >= 0; i--) {
       const d = new Date(); d.setDate(d.getDate() - i);
+<<<<<<< HEAD
       days.push({ label:d.toLocaleDateString("en-IN", { weekday:"short" }), date:d.toDateString(), revenue:0, orders:0 });
+=======
+      days.push({ label: d.toLocaleDateString("en-IN", { weekday: "short" }), date: d.toDateString(), revenue: 0, orders: 0 });
+>>>>>>> 5d434ed (feat: admin user profile, multi-address, avatar upload, email change OTP, checkout modal)
     }
     inRange.forEach(o => {
       const slot = days.find(d => d.date === parseDate(o.created_at).toDateString());
       if (slot) { slot.revenue += Number(o.total); slot.orders += 1; }
     });
+<<<<<<< HEAD
     return days.map(({ label, revenue, orders }) => ({ label, revenue:Math.round(revenue), orders }));
   }
 
@@ -426,12 +550,22 @@ const bucketOrders = (orders, filter) => {
       const end = new Date(); end.setDate(end.getDate() - i * 5);
       const start = new Date(end); start.setDate(start.getDate() - 4);
       return { label:start.toLocaleDateString("en-IN", { day:"numeric", month:"short" }), start, end:new Date(end.setHours(23,59,59,999)), revenue:0, orders:0 };
+=======
+    return days.map(({ label, revenue, orders }) => ({ label, revenue: Math.round(revenue), orders }));
+  }
+  if (filter === "month") {
+    const buckets = Array.from({ length: 6 }, (_, i) => {
+      const end = new Date(); end.setDate(end.getDate() - i * 5);
+      const start = new Date(end); start.setDate(start.getDate() - 4);
+      return { label: start.toLocaleDateString("en-IN", { day: "numeric", month: "short" }), start, end: new Date(end.setHours(23, 59, 59, 999)), revenue: 0, orders: 0 };
+>>>>>>> 5d434ed (feat: admin user profile, multi-address, avatar upload, email change OTP, checkout modal)
     }).reverse();
     inRange.forEach(o => {
       const d = parseDate(o.created_at);
       const slot = buckets.find(b => d >= b.start && d <= b.end);
       if (slot) { slot.revenue += Number(o.total); slot.orders += 1; }
     });
+<<<<<<< HEAD
     return buckets.map(({ label, revenue, orders }) => ({ label, revenue:Math.round(revenue), orders }));
   }
 
@@ -439,12 +573,21 @@ const bucketOrders = (orders, filter) => {
   for (let i = 11; i >= 0; i--) {
     const d = new Date(); d.setDate(1); d.setMonth(d.getMonth() - i);
     months.push({ label:d.toLocaleDateString("en-IN", { month:"short", year:"2-digit" }), month:d.getMonth(), year:d.getFullYear(), revenue:0, orders:0 });
+=======
+    return buckets.map(({ label, revenue, orders }) => ({ label, revenue: Math.round(revenue), orders }));
+  }
+  const months = [];
+  for (let i = 11; i >= 0; i--) {
+    const d = new Date(); d.setDate(1); d.setMonth(d.getMonth() - i);
+    months.push({ label: d.toLocaleDateString("en-IN", { month: "short", year: "2-digit" }), month: d.getMonth(), year: d.getFullYear(), revenue: 0, orders: 0 });
+>>>>>>> 5d434ed (feat: admin user profile, multi-address, avatar upload, email change OTP, checkout modal)
   }
   inRange.forEach(o => {
     const d = parseDate(o.created_at);
     const slot = months.find(m => m.month === d.getMonth() && m.year === d.getFullYear());
     if (slot) { slot.revenue += Number(o.total); slot.orders += 1; }
   });
+<<<<<<< HEAD
   return months.map(({ label, revenue, orders }) => ({ label, revenue:Math.round(revenue), orders }));
 };
 
@@ -461,6 +604,24 @@ const userGrowthData = (users) => {
 
 const ChartCard = ({ title, children, controls }) => (
   <motion.div initial={{ opacity:0, y:14 }} animate={{ opacity:1, y:0 }} className="glass rounded-2xl p-4 sm:p-6">
+=======
+  return months.map(({ label, revenue, orders }) => ({ label, revenue: Math.round(revenue), orders }));
+};
+
+const ordersByStatus = (orders) => { const c = {}; orders.forEach(o => { c[o.status] = (c[o.status] || 0) + 1; }); return Object.entries(c).map(([name, value]) => ({ name, value })); };
+const productsByCategory = (products) => { const c = {}; products.forEach(p => { const cat = (typeof p.category === "object" ? p.category?.name : null) || "Uncategorised"; c[cat] = (c[cat] || 0) + 1; }); return Object.entries(c).sort((a, b) => b[1] - a[1]).map(([name, count]) => ({ name, count })); };
+const userGrowthData = (users) => {
+  const months = [];
+  for (let i = 11; i >= 0; i--) { const d = new Date(); d.setDate(1); d.setMonth(d.getMonth() - i); months.push({ label: d.toLocaleDateString("en-IN", { month: "short", year: "2-digit" }), month: d.getMonth(), year: d.getFullYear(), new: 0 }); }
+  users.forEach(u => { const d = parseDate(u.date_joined); const slot = months.find(m => m.month === d.getMonth() && m.year === d.getFullYear()); if (slot) slot.new += 1; });
+  const cutoff = new Date(); cutoff.setMonth(cutoff.getMonth() - 11); cutoff.setDate(1); cutoff.setHours(0, 0, 0, 0);
+  let cum = users.filter(u => parseDate(u.date_joined) < cutoff).length;
+  return months.map(m => { cum += m.new; return { label: m.label, users: cum, new: m.new }; });
+};
+
+const ChartCard = ({ title, children, controls }) => (
+  <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} className="glass rounded-2xl p-4 sm:p-6">
+>>>>>>> 5d434ed (feat: admin user profile, multi-address, avatar upload, email change OTP, checkout modal)
     <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
       <h3 className="text-base font-semibold text-white">{title}</h3>
       {controls}
@@ -473,7 +634,11 @@ const FilterPills = ({ value, onChange, options }) => (
   <div className="flex gap-1">
     {options.map(o => (
       <button key={o.value} onClick={() => onChange(o.value)}
+<<<<<<< HEAD
         className={`text-xs px-3 py-1 rounded-full border transition-all ${value===o.value ? "bg-gold/15 border-gold/40 text-gold" : "border-gray-700 text-gray-500 hover:border-gray-500 hover:text-gray-300"}`}>
+=======
+        className={`text-xs px-3 py-1 rounded-full border transition-all ${value === o.value ? "bg-gold/15 border-gold/40 text-gold" : "border-gray-700 text-gray-500 hover:border-gray-500 hover:text-gray-300"}`}>
+>>>>>>> 5d434ed (feat: admin user profile, multi-address, avatar upload, email change OTP, checkout modal)
         {o.label}
       </button>
     ))}
@@ -482,6 +647,7 @@ const FilterPills = ({ value, onChange, options }) => (
 
 const ChartTooltip = ({ active, payload, label, valueFormatter }) => {
   if (!active || !payload?.length) return null;
+<<<<<<< HEAD
   return (
     <div className="glass rounded-xl px-3 py-2 shadow-lg text-xs border border-gold/20">
       <p className="text-gray-400 mb-1">{label}</p>
@@ -557,6 +723,82 @@ function OverviewTab() {
             { label:"Total Revenue",  value:fmtRupee(stats.total_revenue), sub:"confirmed + delivered" },
           ].map(({ label, value, sub }) => (
             <motion.div key={label} initial={{ opacity:0, y:16 }} animate={{ opacity:1, y:0 }} className="glass rounded-2xl p-4 sm:p-6">
+=======
+  return (
+    <div className="glass rounded-xl px-3 py-2 shadow-lg text-xs border border-gold/20">
+      <p className="text-gray-400 mb-1">{label}</p>
+      {payload.map((p, i) => (
+        <p key={i} style={{ color: p.color }} className="font-medium">
+          {p.name}: {valueFormatter ? valueFormatter(p.value, p.name) : p.value}
+        </p>
+      ))}
+    </div>
+  );
+};
+
+const RADIAN = Math.PI / 180;
+const DonutLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }) => {
+  if (percent < 0.05) return null;
+  const r = innerRadius + (outerRadius - innerRadius) * 0.55;
+  return (
+    <text x={cx + r * Math.cos(-midAngle * RADIAN)} y={cy + r * Math.sin(-midAngle * RADIAN)}
+      fill="#fff" textAnchor="middle" dominantBaseline="central" fontSize={11} fontWeight={500}>
+      {Math.round(percent * 100)}%
+    </text>
+  );
+};
+
+function OverviewTab() {
+  const [stats, setStats] = useState(null);
+  const [orders, setOrders] = useState([]);
+  const [products, setProducts] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [revFilter, setRevFilter] = useState("month");
+
+  useEffect(() => {
+    const fetchAll = async () => {
+      setLoading(true);
+      try {
+        const [sRes, oRes, pRes, uRes] = await Promise.all([
+          ADMIN_API.get("admin/stats/"),
+          ADMIN_API.get("admin/orders/"),
+          ADMIN_API.get("admin/products/"),
+          ADMIN_API.get("admin/users/"),
+        ]);
+        setStats(sRes.data);
+        setOrders(oRes.data.results || oRes.data);
+        setProducts(pRes.data.results || pRes.data);
+        setUsers(uRes.data.results || uRes.data);
+      } catch { }
+      finally { setLoading(false); }
+    };
+    fetchAll();
+  }, []);
+
+  const revenueData = useMemo(() => bucketOrders(orders, revFilter), [orders, revFilter]);
+  const statusData = useMemo(() => ordersByStatus(orders), [orders]);
+  const categoryData = useMemo(() => productsByCategory(products), [products]);
+  const growthData = useMemo(() => userGrowthData(users), [users]);
+
+  if (loading) return <div className="flex items-center justify-center py-24"><p className="text-gray-400">Loading dashboard…</p></div>;
+
+  const axTick = { fill: "#6b6b6b", fontSize: 11 };
+  const revOpts = [{ label: "Week", value: "week" }, { label: "Month", value: "month" }, { label: "Year", value: "year" }];
+
+  return (
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-6">
+      <h2 className="text-2xl sm:text-3xl font-luxury text-gold">Dashboard Overview</h2>
+      {stats && (
+        <div className="grid grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-5">
+          {[
+            { label: "Total Users", value: stats.total_users, sub: "registered accounts" },
+            { label: "Total Products", value: stats.total_products, sub: "in catalogue" },
+            { label: "Total Orders", value: stats.total_orders, sub: "all time" },
+            { label: "Total Revenue", value: fmtRupee(stats.total_revenue), sub: "confirmed + delivered" },
+          ].map(({ label, value, sub }) => (
+            <motion.div key={label} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="glass rounded-2xl p-4 sm:p-6">
+>>>>>>> 5d434ed (feat: admin user profile, multi-address, avatar upload, email change OTP, checkout modal)
               <p className="text-gray-400 text-sm mb-1">{label}</p>
               <p className="text-2xl sm:text-3xl font-luxury text-gold">{value}</p>
               {sub && <p className="text-gray-500 text-xs mt-1">{sub}</p>}
@@ -564,12 +806,16 @@ function OverviewTab() {
           ))}
         </div>
       )}
+<<<<<<< HEAD
 
       {/* Row 1 */}
+=======
+>>>>>>> 5d434ed (feat: admin user profile, multi-address, avatar upload, email change OTP, checkout modal)
       <div className="grid grid-cols-1 xl:grid-cols-5 gap-5">
         <div className="xl:col-span-3">
           <ChartCard title="Revenue" controls={<FilterPills value={revFilter} onChange={setRevFilter} options={revOpts} />}>
             <ResponsiveContainer width="100%" height={240}>
+<<<<<<< HEAD
               <AreaChart data={revenueData} margin={{ top:4, right:4, bottom:0, left:0 }}>
                 <defs>
                   <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
@@ -578,12 +824,23 @@ function OverviewTab() {
                   </linearGradient>
                   <linearGradient id="ordGrad" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%"  stopColor={BLUE} stopOpacity={0.2} />
+=======
+              <AreaChart data={revenueData} margin={{ top: 4, right: 4, bottom: 0, left: 0 }}>
+                <defs>
+                  <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor={GOLD} stopOpacity={0.25} />
+                    <stop offset="95%" stopColor={GOLD} stopOpacity={0.02} />
+                  </linearGradient>
+                  <linearGradient id="ordGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor={BLUE} stopOpacity={0.2} />
+>>>>>>> 5d434ed (feat: admin user profile, multi-address, avatar upload, email change OTP, checkout modal)
                     <stop offset="95%" stopColor={BLUE} stopOpacity={0.02} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
                 <XAxis dataKey="label" tick={axTick} axisLine={false} tickLine={false} />
                 <YAxis yAxisId="rev" tick={axTick} axisLine={false} tickLine={false} width={56}
+<<<<<<< HEAD
                   tickFormatter={v => "₹"+Intl.NumberFormat("en-IN",{notation:"compact"}).format(v)} />
                 <YAxis yAxisId="ord" orientation="right" tick={axTick} axisLine={false} tickLine={false} allowDecimals={false} width={28} />
                 <Tooltip content={<ChartTooltip valueFormatter={(v,n) => n==="Revenue" ? fmtRupee(v) : v} />} />
@@ -598,6 +855,21 @@ function OverviewTab() {
           </ChartCard>
         </div>
 
+=======
+                  tickFormatter={v => "₹" + Intl.NumberFormat("en-IN", { notation: "compact" }).format(v)} />
+                <YAxis yAxisId="ord" orientation="right" tick={axTick} axisLine={false} tickLine={false} allowDecimals={false} width={28} />
+                <Tooltip content={<ChartTooltip valueFormatter={(v, n) => n === "Revenue" ? fmtRupee(v) : v} />} />
+                <Area yAxisId="rev" type="monotone" dataKey="revenue" name="Revenue" stroke={GOLD} strokeWidth={2} fill="url(#revGrad)" dot={false} activeDot={{ r: 4, fill: GOLD }} />
+                <Area yAxisId="ord" type="monotone" dataKey="orders" name="Orders" stroke={BLUE} strokeWidth={1.5} fill="url(#ordGrad)" dot={false} activeDot={{ r: 4, fill: BLUE }} strokeDasharray="4 2" />
+              </AreaChart>
+            </ResponsiveContainer>
+            <div className="flex gap-4 mt-3 text-xs text-gray-500">
+              <span className="flex items-center gap-1.5"><span className="inline-block w-3 h-0.5 rounded" style={{ background: GOLD }} />Revenue</span>
+              <span className="flex items-center gap-1.5"><span className="inline-block w-3 h-0.5 rounded" style={{ background: BLUE }} />Orders</span>
+            </div>
+          </ChartCard>
+        </div>
+>>>>>>> 5d434ed (feat: admin user profile, multi-address, avatar upload, email change OTP, checkout modal)
         <div className="xl:col-span-2">
           <ChartCard title="Orders by status">
             {statusData.length === 0 ? <p className="text-gray-600 text-sm py-8 text-center">No orders yet.</p> : (
@@ -613,8 +885,13 @@ function OverviewTab() {
                     <Tooltip content={({ active, payload }) =>
                       active && payload?.length ? (
                         <div className="glass rounded-xl px-3 py-2 text-xs border border-gold/20">
+<<<<<<< HEAD
                           <p className="font-medium capitalize" style={{ color:STATUS_COLORS[payload[0].name]||GOLD }}>{payload[0].name}</p>
                           <p className="text-gray-400">{payload[0].value} order{payload[0].value!==1?"s":""}</p>
+=======
+                          <p className="font-medium capitalize" style={{ color: STATUS_COLORS[payload[0].name] || GOLD }}>{payload[0].name}</p>
+                          <p className="text-gray-400">{payload[0].value} order{payload[0].value !== 1 ? "s" : ""}</p>
+>>>>>>> 5d434ed (feat: admin user profile, multi-address, avatar upload, email change OTP, checkout modal)
                         </div>
                       ) : null
                     } />
@@ -623,7 +900,11 @@ function OverviewTab() {
                 <div className="flex flex-wrap gap-x-4 gap-y-1.5 mt-2">
                   {statusData.map((s, i) => (
                     <span key={s.name} className="flex items-center gap-1.5 text-xs text-gray-400">
+<<<<<<< HEAD
                       <span className="inline-block w-2 h-2 rounded-sm flex-shrink-0" style={{ background:STATUS_COLORS[s.name]||RCOLORS[i%RCOLORS.length] }} />
+=======
+                      <span className="inline-block w-2 h-2 rounded-sm flex-shrink-0" style={{ background: STATUS_COLORS[s.name] || RCOLORS[i % RCOLORS.length] }} />
+>>>>>>> 5d434ed (feat: admin user profile, multi-address, avatar upload, email change OTP, checkout modal)
                       <span className="capitalize">{s.name}</span>
                       <span className="text-gray-600">({s.value})</span>
                     </span>
@@ -634,32 +915,53 @@ function OverviewTab() {
           </ChartCard>
         </div>
       </div>
+<<<<<<< HEAD
 
       {/* Row 2 */}
+=======
+>>>>>>> 5d434ed (feat: admin user profile, multi-address, avatar upload, email change OTP, checkout modal)
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
         <ChartCard title="Products by category">
           {categoryData.length === 0 ? <p className="text-gray-600 text-sm py-8 text-center">No products yet.</p> : (
             <ResponsiveContainer width="100%" height={220}>
+<<<<<<< HEAD
               <BarChart data={categoryData} layout="vertical" margin={{ top:0, right:24, bottom:0, left:0 }} barCategoryGap="28%">
                 <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="rgba(255,255,255,0.05)" />
                 <XAxis type="number" tick={axTick} axisLine={false} tickLine={false} allowDecimals={false} />
                 <YAxis type="category" dataKey="name" width={100} tick={{ fill:"#9a9994", fontSize:11 }} axisLine={false} tickLine={false}
                   tickFormatter={v => v.length>13 ? v.slice(0,12)+"…" : v} />
+=======
+              <BarChart data={categoryData} layout="vertical" margin={{ top: 0, right: 24, bottom: 0, left: 0 }} barCategoryGap="28%">
+                <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="rgba(255,255,255,0.05)" />
+                <XAxis type="number" tick={axTick} axisLine={false} tickLine={false} allowDecimals={false} />
+                <YAxis type="category" dataKey="name" width={100} tick={{ fill: "#9a9994", fontSize: 11 }} axisLine={false} tickLine={false}
+                  tickFormatter={v => v.length > 13 ? v.slice(0, 12) + "…" : v} />
+>>>>>>> 5d434ed (feat: admin user profile, multi-address, avatar upload, email change OTP, checkout modal)
                 <Tooltip content={({ active, payload, label }) =>
                   active && payload?.length ? (
                     <div className="glass rounded-xl px-3 py-2 text-xs border border-gold/20">
                       <p className="text-gray-400 mb-0.5">{label}</p>
+<<<<<<< HEAD
                       <p style={{ color:GOLD }} className="font-medium">{payload[0].value} product{payload[0].value!==1?"s":""}</p>
                     </div>
                   ) : null
                 } />
                 <Bar dataKey="count" name="Products" radius={[0,4,4,0]}>
                   {categoryData.map((_, i) => <Cell key={i} fill={RCOLORS[i%RCOLORS.length]} fillOpacity={0.8} />)}
+=======
+                      <p style={{ color: GOLD }} className="font-medium">{payload[0].value} product{payload[0].value !== 1 ? "s" : ""}</p>
+                    </div>
+                  ) : null
+                } />
+                <Bar dataKey="count" name="Products" radius={[0, 4, 4, 0]}>
+                  {categoryData.map((_, i) => <Cell key={i} fill={RCOLORS[i % RCOLORS.length]} fillOpacity={0.8} />)}
+>>>>>>> 5d434ed (feat: admin user profile, multi-address, avatar upload, email change OTP, checkout modal)
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
           )}
         </ChartCard>
+<<<<<<< HEAD
 
         <ChartCard title="User growth">
           {growthData.every(d => d.users===0) ? <p className="text-gray-600 text-sm py-8 text-center">No users yet.</p> : (
@@ -673,6 +975,20 @@ function OverviewTab() {
                     </linearGradient>
                     <linearGradient id="newGrad" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%"  stopColor={PURPLE} stopOpacity={0.2} />
+=======
+        <ChartCard title="User growth">
+          {growthData.every(d => d.users === 0) ? <p className="text-gray-600 text-sm py-8 text-center">No users yet.</p> : (
+            <>
+              <ResponsiveContainer width="100%" height={200}>
+                <AreaChart data={growthData} margin={{ top: 4, right: 4, bottom: 0, left: 0 }}>
+                  <defs>
+                    <linearGradient id="userGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor={TEAL} stopOpacity={0.25} />
+                      <stop offset="95%" stopColor={TEAL} stopOpacity={0.02} />
+                    </linearGradient>
+                    <linearGradient id="newGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor={PURPLE} stopOpacity={0.2} />
+>>>>>>> 5d434ed (feat: admin user profile, multi-address, avatar upload, email change OTP, checkout modal)
                       <stop offset="95%" stopColor={PURPLE} stopOpacity={0.02} />
                     </linearGradient>
                   </defs>
@@ -680,6 +996,7 @@ function OverviewTab() {
                   <XAxis dataKey="label" tick={axTick} axisLine={false} tickLine={false} />
                   <YAxis tick={axTick} axisLine={false} tickLine={false} allowDecimals={false} width={28} />
                   <Tooltip content={<ChartTooltip />} />
+<<<<<<< HEAD
                   <Area type="monotone" dataKey="users" name="Total users"    stroke={TEAL}   strokeWidth={2}   fill="url(#userGrad)" dot={false} activeDot={{ r:4, fill:TEAL }} />
                   <Area type="monotone" dataKey="new"   name="New this month" stroke={PURPLE} strokeWidth={1.5} fill="url(#newGrad)"  dot={false} activeDot={{ r:4, fill:PURPLE }} strokeDasharray="4 2" />
                 </AreaChart>
@@ -687,6 +1004,15 @@ function OverviewTab() {
               <div className="flex gap-4 mt-3 text-xs text-gray-500">
                 <span className="flex items-center gap-1.5"><span className="inline-block w-3 h-0.5 rounded" style={{ background:TEAL }}   />Total</span>
                 <span className="flex items-center gap-1.5"><span className="inline-block w-3 h-0.5 rounded" style={{ background:PURPLE }} />New / month</span>
+=======
+                  <Area type="monotone" dataKey="users" name="Total users" stroke={TEAL} strokeWidth={2} fill="url(#userGrad)" dot={false} activeDot={{ r: 4, fill: TEAL }} />
+                  <Area type="monotone" dataKey="new" name="New this month" stroke={PURPLE} strokeWidth={1.5} fill="url(#newGrad)" dot={false} activeDot={{ r: 4, fill: PURPLE }} strokeDasharray="4 2" />
+                </AreaChart>
+              </ResponsiveContainer>
+              <div className="flex gap-4 mt-3 text-xs text-gray-500">
+                <span className="flex items-center gap-1.5"><span className="inline-block w-3 h-0.5 rounded" style={{ background: TEAL }} />Total</span>
+                <span className="flex items-center gap-1.5"><span className="inline-block w-3 h-0.5 rounded" style={{ background: PURPLE }} />New / month</span>
+>>>>>>> 5d434ed (feat: admin user profile, multi-address, avatar upload, email change OTP, checkout modal)
               </div>
             </>
           )}
@@ -697,43 +1023,56 @@ function OverviewTab() {
 }
 
 // ═══ USERS ═══════════════════════════════════════════════════════════════════
-function UsersTab() {
-  const [users, setUsers]                 = useState([]);
-  const [search, setSearch]               = useState("");
-  const [loading, setLoading]             = useState(false);
-  const [showAddAdmin, setShowAddAdmin]   = useState(false);
-  const [form, setForm]                   = useState({ username:"", email:"", full_name:"", password:"" });
-  const [formError, setFormError]         = useState("");
-  const [formSuccess, setFormSuccess]     = useState("");
-  const [deleteTarget, setDeleteTarget]   = useState(null);
+function UsersTab({ onViewProfile }) {
+  const [users, setUsers] = useState([]);
+  const [search, setSearch] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [showAddAdmin, setShowAddAdmin] = useState(false);
+  const [form, setForm] = useState({ username: "", email: "", full_name: "", password: "" });
+  const [formError, setFormError] = useState("");
+  const [formSuccess, setFormSuccess] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
-  const [banTarget, setBanTarget]         = useState(null);
-  const [banLoading, setBanLoading]       = useState(false);
+  const [banTarget, setBanTarget] = useState(null);
+  const [banLoading, setBanLoading] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
+<<<<<<< HEAD
     try { const r = await ADMIN_API.get("admin/users/", { params:{ search } }); setUsers(r.data.results || r.data); }
     catch {} finally { setLoading(false); }
+=======
+    try { const r = await ADMIN_API.get("admin/users/", { params: { search } }); setUsers(r.data.results || r.data); }
+    catch { } finally { setLoading(false); }
+>>>>>>> 5d434ed (feat: admin user profile, multi-address, avatar upload, email change OTP, checkout modal)
   }, [search]);
 
   useEffect(() => { const t = setTimeout(load, 400); return () => clearTimeout(t); }, [load]);
 
+<<<<<<< HEAD
   const toggleStaff    = async (id) => { try { const r = await ADMIN_API.patch(`admin/users/${id}/toggle-staff/`); setUsers(u => u.map(x => x.id===id ? r.data : x)); } catch {} };
   const handleBanClick = (u) => u.is_active ? setBanTarget(u) : ADMIN_API.patch(`admin/users/${u.id}/ban/`).then(r => setUsers(us => us.map(x => x.id===u.id ? r.data : x))).catch(()=>{});
   const confirmBan     = async (reason) => { setBanLoading(true); try { const r = await ADMIN_API.patch(`admin/users/${banTarget.id}/ban/`, { reason }); setUsers(u => u.map(x => x.id===banTarget.id ? r.data : x)); setBanTarget(null); } catch {} finally { setBanLoading(false); } };
   const confirmDelete  = async () => { setDeleteLoading(true); try { await ADMIN_API.delete(`admin/users/${deleteTarget.id}/`); setUsers(u => u.filter(x => x.id!==deleteTarget.id)); setDeleteTarget(null); } catch {} finally { setDeleteLoading(false); } };
   const createAdmin    = async (e) => {
+=======
+  const toggleStaff = async (id) => { try { const r = await ADMIN_API.patch(`admin/users/${id}/toggle-staff/`); setUsers(u => u.map(x => x.id === id ? r.data : x)); } catch { } };
+  const handleBanClick = (u) => u.is_active ? setBanTarget(u) : ADMIN_API.patch(`admin/users/${u.id}/ban/`).then(r => setUsers(us => us.map(x => x.id === u.id ? r.data : x))).catch(() => { });
+  const confirmBan = async (reason) => { setBanLoading(true); try { const r = await ADMIN_API.patch(`admin/users/${banTarget.id}/ban/`, { reason }); setUsers(u => u.map(x => x.id === banTarget.id ? r.data : x)); setBanTarget(null); } catch { } finally { setBanLoading(false); } };
+  const confirmDelete = async () => { setDeleteLoading(true); try { await ADMIN_API.delete(`admin/users/${deleteTarget.id}/`); setUsers(u => u.filter(x => x.id !== deleteTarget.id)); setDeleteTarget(null); } catch { } finally { setDeleteLoading(false); } };
+  const createAdmin = async (e) => {
+>>>>>>> 5d434ed (feat: admin user profile, multi-address, avatar upload, email change OTP, checkout modal)
     e.preventDefault(); setFormError(""); setFormSuccess("");
     try {
       const r = await ADMIN_API.post("admin/create-admin/", form);
       setUsers(u => [r.data, ...u]);
       setFormSuccess(`Admin "${r.data.username}" created.`);
-      setForm({ username:"", email:"", full_name:"", password:"" });
+      setForm({ username: "", email: "", full_name: "", password: "" });
     } catch (err) { setFormError(parseError(err)); }
   };
 
   return (
-    <motion.div initial={{ opacity:0 }} animate={{ opacity:1 }} exit={{ opacity:0 }}>
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl sm:text-3xl font-luxury text-gold">Users</h2>
         <button onClick={() => setShowAddAdmin(true)} className="btn-luxury flex items-center gap-2 text-sm"><PlusIcon /> <span className="hidden sm:inline">Add Admin</span><span className="sm:hidden">Admin</span></button>
@@ -774,9 +1113,21 @@ function UsersTab() {
                   <td className="px-5 py-3"><Badge label={u.is_active?"Active":"Banned"} color={u.is_active?"green":"red"} /></td>
                   <td className="px-5 py-3 text-gray-500 text-xs">{new Date(u.date_joined).toLocaleDateString()}</td>
                   <td className="px-5 py-3">
+<<<<<<< HEAD
                     <div className="flex items-center gap-2">
                       <button onClick={() => toggleStaff(u.id)} title={u.is_staff?"Revoke admin":"Make admin"} className="p-1.5 rounded-lg text-gray-400 hover:text-gold hover:bg-gold/10 transition"><ShieldIcon /></button>
                       <button onClick={() => handleBanClick(u)} title={u.is_active?"Ban":"Unban"}
+=======
+                    <div className="flex items-center gap-1.5">
+                      {/* ── View Profile ── */}
+                      <button onClick={() => onViewProfile(u.id)} title="View profile"
+                        className="p-1.5 rounded-lg text-gray-400 hover:text-gold hover:bg-gold/10 transition">
+                        <ViewIcon />
+                      </button>
+                      <button onClick={() => toggleStaff(u.id)} title={u.is_staff ? "Revoke admin" : "Make admin"}
+                        className="p-1.5 rounded-lg text-gray-400 hover:text-gold hover:bg-gold/10 transition"><ShieldIcon /></button>
+                      <button onClick={() => handleBanClick(u)} title={u.is_active ? "Ban" : "Unban"}
+>>>>>>> 5d434ed (feat: admin user profile, multi-address, avatar upload, email change OTP, checkout modal)
                         className={`p-1.5 rounded-lg transition ${u.is_active ? "text-gray-400 hover:text-red-400 hover:bg-red-400/10" : "text-green-400 hover:bg-green-400/10"}`}>
                         <Icon d={u.is_active ? ["M18.364 18.364A9 9 0 0 0 5.636 5.636m12.728 12.728A9 9 0 0 1 5.636 5.636m12.728 12.728L5.636 5.636"] : "M9 12l2 2 4-4m6 2a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"} />
                       </button>
@@ -790,6 +1141,11 @@ function UsersTab() {
           </table>
         </div>
       </div>
+<<<<<<< HEAD
+=======
+
+      {/* Mobile cards */}
+>>>>>>> 5d434ed (feat: admin user profile, multi-address, avatar upload, email change OTP, checkout modal)
       <div className="md:hidden space-y-3">
         {loading && <p className="text-center py-8 text-gray-500">Loading...</p>}
         {!loading && users.length===0 && <p className="text-center py-8 text-gray-500">No users found.</p>}
@@ -803,8 +1159,13 @@ function UsersTab() {
                 <div className="min-w-0">
                   <p className="text-white font-medium truncate">{u.full_name||u.username}</p>
                   <p className="text-gray-500 text-xs">@{u.username}</p>
+<<<<<<< HEAD
                   <p className="text-gray-400 text-xs truncate">{u.email||"—"}</p>
                   {!u.is_active && u.ban_reason && <p className="text-red-400 text-xs mt-0.5 truncate" title={u.ban_reason}>Reason: {u.ban_reason}</p>}
+=======
+                  <p className="text-gray-400 text-xs truncate">{u.email || "—"}</p>
+                  {!u.is_active && u.ban_reason && <p className="text-red-400 text-xs mt-0.5 truncate">{u.ban_reason}</p>}
+>>>>>>> 5d434ed (feat: admin user profile, multi-address, avatar upload, email change OTP, checkout modal)
                 </div>
               </div>
               <div className="flex flex-col gap-1 items-end flex-shrink-0">
@@ -814,11 +1175,24 @@ function UsersTab() {
             </div>
             <div className="flex items-center justify-between border-t border-gray-800 pt-3">
               <p className="text-gray-600 text-xs">Joined {new Date(u.date_joined).toLocaleDateString()}</p>
+<<<<<<< HEAD
               <div className="flex items-center gap-2">
                 <button onClick={() => toggleStaff(u.id)} className="p-2 rounded-lg text-gray-400 hover:text-gold hover:bg-gold/10 transition"><ShieldIcon /></button>
                 <button onClick={() => handleBanClick(u)} className={`p-2 rounded-lg transition ${u.is_active ? "text-gray-400 hover:text-red-400 hover:bg-red-400/10" : "text-green-400 hover:bg-green-400/10"}`}>
                   <Icon d={u.is_active ? ["M18.364 18.364A9 9 0 0 0 5.636 5.636m12.728 12.728A9 9 0 0 1 5.636 5.636m12.728 12.728L5.636 5.636"] : "M9 12l2 2 4-4m6 2a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"} />
                 </button>
+=======
+              <div className="flex items-center gap-1.5">
+                {/* ── View Profile (mobile) ── */}
+                <button onClick={() => onViewProfile(u.id)}
+                  className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs text-yellow-500 border border-yellow-600/30 hover:bg-yellow-600/10 transition">
+                  <ViewIcon /> Profile
+                </button>
+                <button onClick={() => toggleStaff(u.id)} className="p-2 rounded-lg text-gray-400 hover:text-gold hover:bg-gold/10 transition"><ShieldIcon /></button>
+                <button onClick={() => handleBanClick(u)} className={`p-2 rounded-lg transition ${u.is_active ? "text-gray-400 hover:text-red-400 hover:bg-red-400/10" : "text-green-400 hover:bg-green-400/10"}`}>
+                  <Icon d={u.is_active ? ["M18.364 18.364A9 9 0 0 0 5.636 5.636m12.728 12.728A9 9 0 0 1 5.636 5.636m12.728 12.728L5.636 5.636"] : "M9 12l2 2 4-4m6 2a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"} />
+                </button>
+>>>>>>> 5d434ed (feat: admin user profile, multi-address, avatar upload, email change OTP, checkout modal)
                 <button onClick={() => setDeleteTarget(u)} className="p-2 rounded-lg text-gray-400 hover:text-red-400 hover:bg-red-400/10 transition"><TrashIcon /></button>
               </div>
             </div>
@@ -829,11 +1203,17 @@ function UsersTab() {
         {showAddAdmin && (
           <Modal title="Create New Admin" onClose={() => { setShowAddAdmin(false); setFormError(""); setFormSuccess(""); }}>
             <form onSubmit={createAdmin} className="space-y-4">
-              {formError   && <p className="text-red-400 text-sm bg-red-500/10 border border-red-500/30 px-3 py-2 rounded-lg">{formError}</p>}
+              {formError && <p className="text-red-400 text-sm bg-red-500/10 border border-red-500/30 px-3 py-2 rounded-lg">{formError}</p>}
               {formSuccess && <p className="text-green-400 text-sm bg-green-500/10 border border-green-500/30 px-3 py-2 rounded-lg">{formSuccess}</p>}
+<<<<<<< HEAD
               {[{key:"username",ph:"Username",type:"text"},{key:"email",ph:"Email",type:"email"},{key:"full_name",ph:"Full Name",type:"text"},{key:"password",ph:"Password",type:"password"}].map(({key,ph,type}) => (
                 <input key={key} type={type} placeholder={ph} value={form[key]}
                   onChange={e => setForm(f => ({...f,[key]:e.target.value}))}
+=======
+              {[{ key: "username", ph: "Username", type: "text" }, { key: "email", ph: "Email", type: "email" }, { key: "full_name", ph: "Full Name", type: "text" }, { key: "password", ph: "Password", type: "password" }].map(({ key, ph, type }) => (
+                <input key={key} type={type} placeholder={ph} value={form[key]}
+                  onChange={e => setForm(f => ({ ...f, [key]: e.target.value }))}
+>>>>>>> 5d434ed (feat: admin user profile, multi-address, avatar upload, email change OTP, checkout modal)
                   className="w-full bg-transparent border border-gray-600 p-3 rounded-lg focus:outline-none focus:border-gold transition text-white text-sm" />
               ))}
               <button type="submit" className="btn-luxury w-full">Create Admin</button>
@@ -841,7 +1221,7 @@ function UsersTab() {
           </Modal>
         )}
         {deleteTarget && <DeleteConfirmModal message={`Delete @${deleteTarget.username}?`} subMessage="This is permanent and cannot be undone." onConfirm={confirmDelete} onCancel={() => setDeleteTarget(null)} loading={deleteLoading} />}
-        {banTarget    && <BanModal user={banTarget} onConfirm={confirmBan} onCancel={() => setBanTarget(null)} loading={banLoading} />}
+        {banTarget && <BanModal user={banTarget} onConfirm={confirmBan} onCancel={() => setBanTarget(null)} loading={banLoading} />}
       </AnimatePresence>
     </motion.div>
   );
@@ -849,9 +1229,10 @@ function UsersTab() {
 
 // ═══ PRODUCTS ════════════════════════════════════════════════════════════════
 function ProductsTab() {
-  const emptyForm = { name:"", description:"", price:"", stock:"", is_available:true, image_urls:[], category:"" };
-  const [products,        setProducts]        = useState([]);
+  const emptyForm = { name: "", description: "", price: "", stock: "", is_available: true, image_urls: [], category: "" };
+  const [products, setProducts] = useState([]);
   const [categoryOptions, setCategoryOptions] = useState([]);
+<<<<<<< HEAD
   const [loading,         setLoading]         = useState(false);
   const [showModal,       setShowModal]       = useState(false);
   const [editing,         setEditing]         = useState(null);
@@ -863,6 +1244,19 @@ function ProductsTab() {
   const [filterCategory,  setFilterCategory]  = useState("");
   const [catDropdownOpen, setCatDropdownOpen] = useState(false);
   const catDropdownRef                        = useRef(null);
+=======
+  const [loading, setLoading] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [editing, setEditing] = useState(null);
+  const [form, setForm] = useState(emptyForm);
+  const [formError, setFormError] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [search, setSearch] = useState("");
+  const [filterCategory, setFilterCategory] = useState("");
+  const [catDropdownOpen, setCatDropdownOpen] = useState(false);
+  const catDropdownRef = useRef(null);
+>>>>>>> 5d434ed (feat: admin user profile, multi-address, avatar upload, email change OTP, checkout modal)
 
   useEffect(() => {
     const handler = (e) => { if (catDropdownRef.current && !catDropdownRef.current.contains(e.target)) setCatDropdownOpen(false); };
@@ -877,7 +1271,11 @@ function ProductsTab() {
         const [prodRes, catRes] = await Promise.all([ADMIN_API.get("admin/products/"), ADMIN_API.get("admin/categories/")]);
         setProducts(prodRes.data.results || prodRes.data);
         setCategoryOptions(catRes.data.results || catRes.data);
+<<<<<<< HEAD
       } catch {} finally { setLoading(false); }
+=======
+      } catch { } finally { setLoading(false); }
+>>>>>>> 5d434ed (feat: admin user profile, multi-address, avatar upload, email change OTP, checkout modal)
     };
     fetchAll();
   }, []);
@@ -891,6 +1289,7 @@ function ProductsTab() {
 
   const activeFilterCount = (search.trim() ? 1 : 0) + (filterCategory ? 1 : 0);
   const clearFilters = () => { setSearch(""); setFilterCategory(""); };
+<<<<<<< HEAD
   const selectedCatLabel = filterCategory ? categoryOptions.find(c => String(c.id)===filterCategory)?.name||"Category" : "All Categories";
 
   const openAdd  = () => { setEditing(null); setForm(emptyForm); setFormError(""); setShowModal(true); };
@@ -899,39 +1298,73 @@ function ProductsTab() {
     setForm({ name:p.name, description:p.description, price:p.price, stock:p.stock, is_available:p.is_available,
       image_urls:p.images?.map(img => img.url)||(p.image_url?[p.image_url]:[]),
       category:String(p.category?.id ?? p.category ?? "") });
+=======
+  const selectedCatLabel = filterCategory ? categoryOptions.find(c => String(c.id) === filterCategory)?.name || "Category" : "All Categories";
+
+  const openAdd = () => { setEditing(null); setForm(emptyForm); setFormError(""); setShowModal(true); };
+  const openEdit = (p) => {
+    setEditing(p);
+    setForm({
+      name: p.name, description: p.description, price: p.price, stock: p.stock, is_available: p.is_available,
+      image_urls: p.images?.map(img => img.url) || (p.image_url ? [p.image_url] : []),
+      category: String(p.category?.id ?? p.category ?? "")
+    });
+>>>>>>> 5d434ed (feat: admin user profile, multi-address, avatar upload, email change OTP, checkout modal)
     setFormError(""); setShowModal(true);
   };
 
   const saveProduct = async (e) => {
     e.preventDefault(); setFormError("");
+<<<<<<< HEAD
     const payload = { name:form.name, description:form.description, price:form.price, stock:form.stock,
       is_available:form.is_available, image_urls:form.image_urls.filter(u=>u.trim()),
       category_id:form.category ? Number(form.category) : null };
     try {
       if (editing) { const r = await ADMIN_API.patch(`admin/products/${editing.id}/`, payload); setProducts(ps => ps.map(p => p.id===editing.id ? r.data : p)); }
       else         { const r = await ADMIN_API.post("admin/products/", payload); setProducts(ps => [r.data, ...ps]); }
+=======
+    const payload = {
+      name: form.name, description: form.description, price: form.price, stock: form.stock,
+      is_available: form.is_available, image_urls: form.image_urls.filter(u => u.trim()),
+      category_id: form.category ? Number(form.category) : null
+    };
+    try {
+      if (editing) { const r = await ADMIN_API.patch(`admin/products/${editing.id}/`, payload); setProducts(ps => ps.map(p => p.id === editing.id ? r.data : p)); }
+      else { const r = await ADMIN_API.post("admin/products/", payload); setProducts(ps => [r.data, ...ps]); }
+>>>>>>> 5d434ed (feat: admin user profile, multi-address, avatar upload, email change OTP, checkout modal)
       setShowModal(false);
     } catch (err) { setFormError(parseError(err)); }
   };
 
+<<<<<<< HEAD
   const confirmDelete   = async () => { setDeleteLoading(true); try { await ADMIN_API.delete(`admin/products/${deleteTarget.id}/`); setProducts(ps => ps.filter(p => p.id!==deleteTarget.id)); setDeleteTarget(null); } catch {} finally { setDeleteLoading(false); } };
   const toggleAvailable = async (p) => { try { const r = await ADMIN_API.patch(`admin/products/${p.id}/`, { is_available:!p.is_available }); setProducts(ps => ps.map(x => x.id===p.id ? r.data : x)); } catch {} };
   const getThumb        = (p) => p.images?.length > 0 ? p.images[0].url : p.image_url||p.image||"";
   const getCatName      = (p) => { if (!p.category) return null; if (typeof p.category==="object") return p.category.name; return categoryOptions.find(c => c.id===p.category)?.name||null; };
+=======
+  const confirmDelete = async () => { setDeleteLoading(true); try { await ADMIN_API.delete(`admin/products/${deleteTarget.id}/`); setProducts(ps => ps.filter(p => p.id !== deleteTarget.id)); setDeleteTarget(null); } catch { } finally { setDeleteLoading(false); } };
+  const toggleAvailable = async (p) => { try { const r = await ADMIN_API.patch(`admin/products/${p.id}/`, { is_available: !p.is_available }); setProducts(ps => ps.map(x => x.id === p.id ? r.data : x)); } catch { } };
+  const getThumb = (p) => p.images?.length > 0 ? p.images[0].url : p.image_url || p.image || "";
+  const getCatName = (p) => { if (!p.category) return null; if (typeof p.category === "object") return p.category.name; return categoryOptions.find(c => c.id === p.category)?.name || null; };
+>>>>>>> 5d434ed (feat: admin user profile, multi-address, avatar upload, email change OTP, checkout modal)
 
   return (
-    <motion.div initial={{ opacity:0 }} animate={{ opacity:1 }} exit={{ opacity:0 }}>
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl sm:text-3xl font-luxury text-gold">Products</h2>
         <button onClick={openAdd} className="btn-luxury flex items-center gap-2 text-sm"><PlusIcon /> <span className="hidden sm:inline">Add Product</span><span className="sm:hidden">Add</span></button>
       </div>
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5d434ed (feat: admin user profile, multi-address, avatar upload, email change OTP, checkout modal)
       <div className="flex flex-col sm:flex-row gap-3 mb-6">
         <div className="relative flex-1">
           <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none"><SearchIcon /></span>
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search by name or description..."
             className="w-full bg-transparent border border-gray-700 pl-10 pr-4 py-2.5 rounded-lg text-sm focus:outline-none focus:border-gold transition text-white" />
           {search && <button onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition"><XIcon /></button>}
+<<<<<<< HEAD
         </div>
         <div ref={catDropdownRef} className="relative sm:w-52 flex-shrink-0">
           <button type="button" onClick={() => setCatDropdownOpen(v => !v)}
@@ -988,7 +1421,99 @@ function ProductsTab() {
               <button onClick={clearFilters} className="text-xs text-gray-500 hover:text-white transition underline underline-offset-2">Clear all</button>
             </div>
           )}
+=======
+>>>>>>> 5d434ed (feat: admin user profile, multi-address, avatar upload, email change OTP, checkout modal)
         </div>
+        <div ref={catDropdownRef} className="relative sm:w-52 flex-shrink-0">
+          <button type="button" onClick={() => setCatDropdownOpen(v => !v)}
+            className={`w-full flex items-center justify-between gap-2 border px-3 py-2.5 rounded-lg text-sm transition focus:outline-none ${filterCategory ? "border-gold/50 bg-gold/8 text-gold" : catDropdownOpen ? "border-gold text-white bg-transparent" : "border-gray-700 text-gray-400 hover:border-gray-500 hover:text-white bg-transparent"}`}>
+            <span className="flex items-center gap-2 min-w-0"><FilterIcon /><span className="truncate">{selectedCatLabel}</span></span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+              className={`flex-shrink-0 transition-transform duration-200 ${catDropdownOpen ? "rotate-180" : ""}`}><polyline points="6 9 12 15 18 9" /></svg>
+          </button>
+          <AnimatePresence>
+            {catDropdownOpen && (
+              <motion.ul initial={{ opacity: 0, y: -6, scaleY: 0.95 }} animate={{ opacity: 1, y: 0, scaleY: 1 }} exit={{ opacity: 0, y: -6, scaleY: 0.95 }}
+                transition={{ duration: 0.15 }} style={{ transformOrigin: "top" }}
+                className="absolute z-50 w-full mt-1.5 rounded-xl border border-gray-700 bg-gray-900 shadow-2xl overflow-hidden">
+                <li>
+                  <button type="button" onClick={() => { setFilterCategory(""); setCatDropdownOpen(false); }}
+                    className={`w-full flex items-center justify-between px-4 py-2.5 text-sm transition-colors ${!filterCategory ? "bg-gold/15 text-gold" : "text-gray-300 hover:bg-white/5 hover:text-white"}`}>
+                    <span>All Categories</span>
+                    {!filterCategory && <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>}
+                  </button>
+                </li>
+                {categoryOptions.map(c => {
+                  const isSelected = String(c.id) === filterCategory;
+                  return (
+                    <li key={c.id}>
+                      <button type="button" onClick={() => { setFilterCategory(String(c.id)); setCatDropdownOpen(false); }}
+                        className={`w-full flex items-center justify-between px-4 py-2.5 text-sm transition-colors ${isSelected ? "bg-gold/15 text-gold" : "text-gray-300 hover:bg-white/5 hover:text-white"}`}>
+                        <span>{c.name}</span>
+                        {isSelected && <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>}
+                      </button>
+                    </li>
+                  );
+                })}
+              </motion.ul>
+            )}
+          </AnimatePresence>
+        </div>
+      </div>
+      {(activeFilterCount > 0 || !loading) && (
+        <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+          <p className="text-gray-500 text-xs">{loading ? "Loading…" : `${filteredProducts.length} product${filteredProducts.length !== 1 ? "s" : ""}${activeFilterCount > 0 ? " found" : ""}`}</p>
+          {activeFilterCount > 0 && (
+            <div className="flex items-center gap-2 flex-wrap">
+              {search.trim() && <span className="flex items-center gap-1 text-xs bg-gold/10 border border-gold/25 text-yellow-400 px-2.5 py-1 rounded-full">"{search.trim()}" <button onClick={() => setSearch("")} className="ml-0.5 hover:text-white transition"><XIcon /></button></span>}
+              {filterCategory && <span className="flex items-center gap-1 text-xs bg-gold/10 border border-gold/25 text-yellow-400 px-2.5 py-1 rounded-full">{selectedCatLabel} <button onClick={() => setFilterCategory("")} className="ml-0.5 hover:text-white transition"><XIcon /></button></span>}
+              <button onClick={clearFilters} className="text-xs text-gray-500 hover:text-white transition underline underline-offset-2">Clear all</button>
+            </div>
+          )}
+        </div>
+      )}
+      {loading ? <p className="text-gray-400">Loading...</p> : (
+        filteredProducts.length === 0 ? (
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="glass rounded-2xl p-12 text-center">
+            <div className="flex justify-center mb-3 text-gray-600"><SearchIcon /></div>
+            <p className="text-gray-400 text-sm font-medium mb-1">No products found</p>
+            <p className="text-gray-600 text-xs">{activeFilterCount > 0 ? "Try adjusting your search or filter." : "Add your first product to get started."}</p>
+            {activeFilterCount > 0 && <button onClick={clearFilters} className="mt-4 text-xs text-gold hover:text-yellow-300 transition underline underline-offset-2">Clear filters</button>}
+          </motion.div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-5">
+            {filteredProducts.map(p => (
+              <motion.div key={p.id} layout className="glass rounded-2xl overflow-hidden">
+                <div className="relative h-44 bg-gray-900">
+                  {getThumb(p) ? <img src={getThumb(p)} alt={p.name} className="h-full w-full object-cover" /> : <div className="h-full flex items-center justify-center text-gray-700"><ImgIcon /></div>}
+                  <div className="absolute top-2 right-2 flex gap-1.5">
+                    <Badge label={p.is_available ? "Live" : "Hidden"} color={p.is_available ? "green" : "red"} />
+                    {p.stock === 0 && <Badge label="Out of Stock" color="red" />}
+                  </div>
+                  {p.images?.length > 1 && <div className="absolute bottom-2 left-2"><span className="bg-black/60 text-white text-xs px-2 py-0.5 rounded-full">{p.images.length} photos</span></div>}
+                </div>
+                <div className="p-4">
+                  <div className="flex items-start justify-between gap-2 mb-0.5">
+                    <h3 className="font-semibold text-white truncate">{p.name}</h3>
+                    {getCatName(p) && <span className="flex-shrink-0 text-xs bg-gold/10 border border-gold/20 text-yellow-500 px-2 py-0.5 rounded-full">{getCatName(p)}</span>}
+                  </div>
+                  <p className="text-gray-400 text-xs mt-0.5 truncate">{p.description}</p>
+                  <div className="flex items-center justify-between mt-3">
+                    <span className="text-gold font-semibold text-sm">₹ {Number(p.price).toLocaleString("en-IN")}</span>
+                    <span className={`text-xs ${p.stock === 0 ? "text-red-400" : "text-gray-500"}`}>Stock: {p.stock}</span>
+                  </div>
+                  <div className="flex gap-2 mt-3">
+                    <button onClick={() => openEdit(p)} className="flex-1 flex items-center justify-center gap-1 text-xs border border-gray-600 text-gray-300 hover:border-gold hover:text-gold py-2 rounded-lg transition"><EditIcon /> Edit</button>
+                    <button onClick={() => toggleAvailable(p)} className={`flex-1 text-xs border py-2 rounded-lg transition ${p.is_available ? "border-yellow-600/40 text-yellow-500 hover:bg-yellow-600/10" : "border-green-500/40 text-green-400 hover:bg-green-500/10"}`}>
+                      {p.is_available ? "Hide" : "Show"}
+                    </button>
+                    <button onClick={() => setDeleteTarget(p)} className="p-2 border border-red-500/30 text-red-400 rounded-lg hover:bg-red-400/10 transition"><TrashIcon /></button>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        )
       )}
 
       {loading ? <p className="text-gray-400">Loading...</p> : (
@@ -1042,6 +1567,7 @@ function ProductsTab() {
           <Modal title={editing?"Edit Product":"Add New Product"} onClose={() => setShowModal(false)} maxW="max-w-xl">
             <form onSubmit={saveProduct} className="space-y-4">
               {formError && <p className="text-red-400 text-sm bg-red-500/10 border border-red-500/30 px-3 py-2 rounded-lg">{formError}</p>}
+<<<<<<< HEAD
               <input type="text" placeholder="Product Name" value={form.name} onChange={e => setForm(f => ({...f,name:e.target.value}))}
                 className="w-full bg-transparent border border-gray-600 p-3 rounded-lg focus:outline-none focus:border-gold transition text-white text-sm" />
               <textarea placeholder="Description" value={form.description} rows={3} onChange={e => setForm(f => ({...f,description:e.target.value}))}
@@ -1050,17 +1576,31 @@ function ProductsTab() {
                 <input type="number" placeholder="Price (₹)" value={form.price} onChange={e => setForm(f => ({...f,price:e.target.value}))}
                   className="w-full bg-transparent border border-gray-600 p-3 rounded-lg focus:outline-none focus:border-gold transition text-white text-sm" />
                 <input type="number" placeholder="Stock Quantity" value={form.stock} onChange={e => setForm(f => ({...f,stock:e.target.value}))}
+=======
+              <input type="text" placeholder="Product Name" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+                className="w-full bg-transparent border border-gray-600 p-3 rounded-lg focus:outline-none focus:border-gold transition text-white text-sm" />
+              <textarea placeholder="Description" value={form.description} rows={3} onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
+                className="w-full bg-transparent border border-gray-600 p-3 rounded-lg focus:outline-none focus:border-gold transition text-white text-sm resize-none" />
+              <div className="grid grid-cols-2 gap-3">
+                <input type="number" placeholder="Price (₹)" value={form.price} onChange={e => setForm(f => ({ ...f, price: e.target.value }))}
+                  className="w-full bg-transparent border border-gray-600 p-3 rounded-lg focus:outline-none focus:border-gold transition text-white text-sm" />
+                <input type="number" placeholder="Stock Quantity" value={form.stock} onChange={e => setForm(f => ({ ...f, stock: e.target.value }))}
+>>>>>>> 5d434ed (feat: admin user profile, multi-address, avatar upload, email change OTP, checkout modal)
                   className="w-full bg-transparent border border-gray-600 p-3 rounded-lg focus:outline-none focus:border-gold transition text-white text-sm" />
               </div>
               <div>
                 <p className="text-xs text-gray-400 mb-1.5">Category</p>
+<<<<<<< HEAD
                 <CategorySelector value={form.category} onChange={val => setForm(f => ({...f,category:val}))} categoryOptions={categoryOptions} setCategoryOptions={setCategoryOptions} />
+=======
+                <CategorySelector value={form.category} onChange={val => setForm(f => ({ ...f, category: val }))} categoryOptions={categoryOptions} setCategoryOptions={setCategoryOptions} />
+>>>>>>> 5d434ed (feat: admin user profile, multi-address, avatar upload, email change OTP, checkout modal)
               </div>
               <div className="border border-gray-700 rounded-xl p-4">
-                <ImageUrlsInput urls={form.image_urls} onChange={urls => setForm(f => ({...f,image_urls:urls}))} />
+                <ImageUrlsInput urls={form.image_urls} onChange={urls => setForm(f => ({ ...f, image_urls: urls }))} />
               </div>
               <label className="flex items-center gap-2 text-sm text-gray-300 cursor-pointer">
-                <input type="checkbox" checked={form.is_available} onChange={e => setForm(f => ({...f,is_available:e.target.checked}))} className="w-4 h-4 accent-yellow-500" />
+                <input type="checkbox" checked={form.is_available} onChange={e => setForm(f => ({ ...f, is_available: e.target.checked }))} className="w-4 h-4 accent-yellow-500" />
                 Visible on site
               </label>
               <button type="submit" className="btn-luxury w-full">{editing?"Save Changes":"Add Product"}</button>
@@ -1075,35 +1615,48 @@ function ProductsTab() {
 
 // ═══ CATEGORIES ══════════════════════════════════════════════════════════════
 function CategoriesTab() {
-  const [categories,    setCategories]    = useState([]);
-  const [loading,       setLoading]       = useState(false);
-  const [showModal,     setShowModal]     = useState(false);
-  const [editingCat,    setEditingCat]    = useState(null);
-  const [catName,       setCatName]       = useState("");
-  const [catSlug,       setCatSlug]       = useState("");
-  const [catError,      setCatError]      = useState("");
-  const [deleteTarget,  setDeleteTarget]  = useState(null);
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [editingCat, setEditingCat] = useState(null);
+  const [catName, setCatName] = useState("");
+  const [catSlug, setCatSlug] = useState("");
+  const [catError, setCatError] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
 
+<<<<<<< HEAD
   const load = async () => { setLoading(true); try { const r = await ADMIN_API.get("admin/categories/"); setCategories(r.data.results||r.data); } catch {} finally { setLoading(false); } };
+=======
+  const load = async () => { setLoading(true); try { const r = await ADMIN_API.get("admin/categories/"); setCategories(r.data.results || r.data); } catch { } finally { setLoading(false); } };
+>>>>>>> 5d434ed (feat: admin user profile, multi-address, avatar upload, email change OTP, checkout modal)
   useEffect(() => { load(); }, []);
 
-  const openAdd  = () => { setEditingCat(null); setCatName(""); setCatSlug(""); setCatError(""); setShowModal(true); };
+  const openAdd = () => { setEditingCat(null); setCatName(""); setCatSlug(""); setCatError(""); setShowModal(true); };
   const openEdit = (c) => { setEditingCat(c); setCatName(c.name); setCatSlug(c.slug); setCatError(""); setShowModal(true); };
 
   const saveCategory = async (e) => {
     e.preventDefault(); setCatError("");
     try {
+<<<<<<< HEAD
       if (editingCat) { const r = await ADMIN_API.patch(`admin/categories/${editingCat.id}/`, { name:catName, slug:catSlug }); setCategories(cs => cs.map(c => c.id===editingCat.id ? r.data : c)); }
       else            { const r = await ADMIN_API.post("admin/categories/", { name:catName, slug:catSlug }); setCategories(cs => [...cs, r.data]); }
+=======
+      if (editingCat) { const r = await ADMIN_API.patch(`admin/categories/${editingCat.id}/`, { name: catName, slug: catSlug }); setCategories(cs => cs.map(c => c.id === editingCat.id ? r.data : c)); }
+      else { const r = await ADMIN_API.post("admin/categories/", { name: catName, slug: catSlug }); setCategories(cs => [...cs, r.data]); }
+>>>>>>> 5d434ed (feat: admin user profile, multi-address, avatar upload, email change OTP, checkout modal)
       setShowModal(false);
     } catch (err) { setCatError(parseError(err)); }
   };
 
+<<<<<<< HEAD
   const confirmDelete = async () => { setDeleteLoading(true); try { await ADMIN_API.delete(`admin/categories/${deleteTarget.id}/`); setCategories(cs => cs.filter(c => c.id!==deleteTarget.id)); setDeleteTarget(null); } catch {} finally { setDeleteLoading(false); } };
+=======
+  const confirmDelete = async () => { setDeleteLoading(true); try { await ADMIN_API.delete(`admin/categories/${deleteTarget.id}/`); setCategories(cs => cs.filter(c => c.id !== deleteTarget.id)); setDeleteTarget(null); } catch { } finally { setDeleteLoading(false); } };
+>>>>>>> 5d434ed (feat: admin user profile, multi-address, avatar upload, email change OTP, checkout modal)
 
   return (
-    <motion.div initial={{ opacity:0 }} animate={{ opacity:1 }} exit={{ opacity:0 }}>
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl sm:text-3xl font-luxury text-gold">Categories</h2>
         <button onClick={openAdd} className="btn-luxury flex items-center gap-2 text-sm"><PlusIcon /> <span className="hidden sm:inline">Add Category</span><span className="sm:hidden">Add</span></button>
@@ -1153,11 +1706,11 @@ function CategoriesTab() {
             <form onSubmit={saveCategory} className="space-y-4">
               {catError && <p className="text-red-400 text-sm bg-red-500/10 border border-red-500/30 px-3 py-2 rounded-lg">{catError}</p>}
               <input type="text" placeholder="Category Name" value={catName}
-                onChange={e => { setCatName(e.target.value); if (!editingCat) setCatSlug(e.target.value.toLowerCase().replace(/\s+/g,"-").replace(/[^a-z0-9-]/g,"")); }}
+                onChange={e => { setCatName(e.target.value); if (!editingCat) setCatSlug(e.target.value.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "")); }}
                 className="w-full bg-transparent border border-gray-600 p-3 rounded-lg focus:outline-none focus:border-gold transition text-white text-sm" />
               <div>
-                <input type="text" placeholder="Slug (e.g. mens-wear)" value={catSlug}
-                  onChange={e => setCatSlug(e.target.value.toLowerCase().replace(/\s+/g,"-").replace(/[^a-z0-9-]/g,""))}
+                <input type="text" placeholder="Slug" value={catSlug}
+                  onChange={e => setCatSlug(e.target.value.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, ""))}
                   className="w-full bg-transparent border border-gray-600 p-3 rounded-lg focus:outline-none focus:border-gold transition text-white text-sm" />
                 <p className="text-gray-600 text-xs mt-1">Auto-generated from name, can be customised.</p>
               </div>
@@ -1173,11 +1726,11 @@ function CategoriesTab() {
 
 // ═══ ORDERS ══════════════════════════════════════════════════════════════════
 function OrdersTab() {
-  const [orders,   setOrders]   = useState([]);
-  const [loading,  setLoading]  = useState(false);
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [expanded, setExpanded] = useState(null);
-  const [filters,  setFilters]  = useState({ status:"", search:"", from:"", to:"" });
-  const STATUS_OPTIONS = ["","pending","confirmed","shipped","delivered","cancelled"];
+  const [filters, setFilters] = useState({ status: "", search: "", from: "", to: "" });
+  const STATUS_OPTIONS = ["", "pending", "confirmed", "shipped", "delivered", "cancelled"];
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -1185,33 +1738,43 @@ function OrdersTab() {
       const params = {};
       if (filters.status) params.status = filters.status;
       if (filters.search) params.search = filters.search;
-      if (filters.from)   params.from   = filters.from;
-      if (filters.to)     params.to     = filters.to;
+      if (filters.from) params.from = filters.from;
+      if (filters.to) params.to = filters.to;
       const r = await ADMIN_API.get("admin/orders/", { params });
       setOrders(r.data.results || r.data);
-    } catch {} finally { setLoading(false); }
+    } catch { } finally { setLoading(false); }
   }, [filters]);
 
   useEffect(() => { const t = setTimeout(load, 400); return () => clearTimeout(t); }, [load]);
 
+<<<<<<< HEAD
   const updateStatus = async (id, s) => { try { const r = await ADMIN_API.patch(`admin/orders/${id}/`, { status:s }); setOrders(os => os.map(o => o.id===id ? r.data : o)); } catch {} };
   const setFilter    = (key, val) => setFilters(f => ({...f, [key]:val}));
+=======
+  const updateStatus = async (id, s) => { try { const r = await ADMIN_API.patch(`admin/orders/${id}/`, { status: s }); setOrders(os => os.map(o => o.id === id ? r.data : o)); } catch { } };
+  const setFilter = (key, val) => setFilters(f => ({ ...f, [key]: val }));
+>>>>>>> 5d434ed (feat: admin user profile, multi-address, avatar upload, email change OTP, checkout modal)
 
   return (
-    <motion.div initial={{ opacity:0 }} animate={{ opacity:1 }} exit={{ opacity:0 }}>
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
       <h2 className="text-2xl sm:text-3xl font-luxury text-gold mb-6">Orders</h2>
       <div className="glass rounded-2xl p-4 mb-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
         <div className="relative">
           <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"><SearchIcon /></span>
-          <input value={filters.search} onChange={e => setFilter("search",e.target.value)} placeholder="Search user..."
+          <input value={filters.search} onChange={e => setFilter("search", e.target.value)} placeholder="Search user..."
             className="w-full bg-transparent border border-gray-700 pl-9 pr-3 py-2 rounded-lg text-sm focus:outline-none focus:border-gold transition text-white" />
         </div>
-        <select value={filters.status} onChange={e => setFilter("status",e.target.value)}
+        <select value={filters.status} onChange={e => setFilter("status", e.target.value)}
           className="bg-dark border border-gray-700 px-3 py-2 rounded-lg text-sm focus:outline-none focus:border-gold transition text-white">
-          {STATUS_OPTIONS.map(s => <option key={s} value={s}>{s ? s.charAt(0).toUpperCase()+s.slice(1) : "All Statuses"}</option>)}
+          {STATUS_OPTIONS.map(s => <option key={s} value={s}>{s ? s.charAt(0).toUpperCase() + s.slice(1) : "All Statuses"}</option>)}
         </select>
+<<<<<<< HEAD
         <input type="date" value={filters.from} onChange={e => setFilter("from",e.target.value)} className="bg-dark border border-gray-700 px-3 py-2 rounded-lg text-sm focus:outline-none focus:border-gold transition text-white" />
         <input type="date" value={filters.to}   onChange={e => setFilter("to",e.target.value)}   className="bg-dark border border-gray-700 px-3 py-2 rounded-lg text-sm focus:outline-none focus:border-gold transition text-white" />
+=======
+        <input type="date" value={filters.from} onChange={e => setFilter("from", e.target.value)} className="bg-dark border border-gray-700 px-3 py-2 rounded-lg text-sm focus:outline-none focus:border-gold transition text-white" />
+        <input type="date" value={filters.to} onChange={e => setFilter("to", e.target.value)} className="bg-dark border border-gray-700 px-3 py-2 rounded-lg text-sm focus:outline-none focus:border-gold transition text-white" />
+>>>>>>> 5d434ed (feat: admin user profile, multi-address, avatar upload, email change OTP, checkout modal)
       </div>
       {loading ? <p className="text-gray-400">Loading orders...</p> : (
         <div className="space-y-3">
@@ -1226,7 +1789,6 @@ function OrdersTab() {
                       <p className="text-white font-medium text-sm">#{order.id} — {order.username}</p>
                       <Badge label={order.status} color={statusColor(order.status)} />
                     </div>
-                    <p className="text-gray-500 text-xs">{order.email}</p>
                     <div className="flex items-center justify-between">
                       <p className="text-gray-500 text-xs">{new Date(order.created_at).toLocaleDateString()}</p>
                       <p className="text-gold font-semibold text-sm">₹ {Number(order.total).toLocaleString("en-IN")}</p>
@@ -1234,7 +1796,7 @@ function OrdersTab() {
                   </div>
                   <div className="hidden sm:grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
                     <div><p className="text-gray-500 text-xs">Order</p><p className="text-white font-medium">#{order.id}</p></div>
-                    <div><p className="text-gray-500 text-xs">Customer</p><p className="text-white">{order.username}</p><p className="text-gray-500 text-xs">{order.email}</p></div>
+                    <div><p className="text-gray-500 text-xs">Customer</p><p className="text-white">{order.username}</p></div>
                     <div><p className="text-gray-500 text-xs">Date</p><p className="text-white">{new Date(order.created_at).toLocaleDateString()}</p></div>
                     <div><p className="text-gray-500 text-xs">Total</p><p className="text-gold font-semibold">₹ {Number(order.total).toLocaleString("en-IN")}</p></div>
                   </div>
@@ -1242,14 +1804,24 @@ function OrdersTab() {
                 <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
                   <span className="hidden sm:block"><Badge label={order.status} color={statusColor(order.status)} /></span>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+<<<<<<< HEAD
                     className={`text-gray-400 transition-transform flex-shrink-0 ${expanded===order.id ? "rotate-180" : ""}`}>
                     <polyline points="6 9 12 15 18 9"/>
+=======
+                    className={`text-gray-400 transition-transform flex-shrink-0 ${expanded === order.id ? "rotate-180" : ""}`}>
+                    <polyline points="6 9 12 15 18 9" />
+>>>>>>> 5d434ed (feat: admin user profile, multi-address, avatar upload, email change OTP, checkout modal)
                   </svg>
                 </div>
               </div>
               <AnimatePresence>
+<<<<<<< HEAD
                 {expanded===order.id && (
                   <motion.div initial={{ height:0, opacity:0 }} animate={{ height:"auto", opacity:1 }} exit={{ height:0, opacity:0 }} transition={{ duration:0.25 }}
+=======
+                {expanded === order.id && (
+                  <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.25 }}
+>>>>>>> 5d434ed (feat: admin user profile, multi-address, avatar upload, email change OTP, checkout modal)
                     className="border-t border-gray-700/50 overflow-hidden">
                     <div className="p-4 sm:p-5">
                       <h4 className="text-sm font-semibold text-gray-300 mb-3">Items</h4>
@@ -1265,8 +1837,13 @@ function OrdersTab() {
                       <div className="flex flex-wrap gap-2">
                         {STATUS_OPTIONS.filter(Boolean).map(s => (
                           <button key={s} onClick={() => updateStatus(order.id, s)}
+<<<<<<< HEAD
                             className={`text-xs px-3 py-1.5 rounded-lg border transition ${order.status===s ? "border-gold bg-gold/15 text-gold" : "border-gray-700 text-gray-400 hover:border-gold/50 hover:text-gold"}`}>
                             {s.charAt(0).toUpperCase()+s.slice(1)}
+=======
+                            className={`text-xs px-3 py-1.5 rounded-lg border transition ${order.status === s ? "border-gold bg-gold/15 text-gold" : "border-gray-700 text-gray-400 hover:border-gold/50 hover:text-gold"}`}>
+                            {s.charAt(0).toUpperCase() + s.slice(1)}
+>>>>>>> 5d434ed (feat: admin user profile, multi-address, avatar upload, email change OTP, checkout modal)
                           </button>
                         ))}
                       </div>

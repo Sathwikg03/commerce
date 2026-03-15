@@ -119,6 +119,10 @@ SIMPLE_JWT = {
 # ── CORS ──────────────────────────────────────────────────────────────────────
 CORS_ALLOWED_ORIGINS = [
     "https://luxe-shopee.vercel.app",
+<<<<<<< HEAD
+=======
+    "http://localhost:5173",
+>>>>>>> 5d434ed (feat: admin user profile, multi-address, avatar upload, email change OTP, checkout modal)
 ]
 
 CSRF_TRUSTED_ORIGINS = [
