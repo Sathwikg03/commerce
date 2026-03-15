@@ -481,8 +481,6 @@ class AdminStatsView(APIView):
             'total_orders':   total_orders,
             'total_revenue':  total_revenue,
         })
-<<<<<<< HEAD
-=======
 #────────────────────────────────────────────────────────────────────────────
 
 class AdminUserOrdersView(APIView):
@@ -778,4 +776,3 @@ class EmailChangeVerifyView(APIView):
 
         return Response(UserSerializer(user, context={'request': request}).data)
 
->>>>>>> 5d434ed (feat: admin user profile, multi-address, avatar upload, email change OTP, checkout modal)
